@@ -1,0 +1,18 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ],
+//  "compilerOptions": {
+//    "types": ["node"],
+//    "module": "ESNext",  // Vue 默认使用 ESNext 模块化语法
+//    "moduleResolution": "node",
+//    "target": "ES6",
+//    // 其他 TypeScript 配置
+//  }
+}
