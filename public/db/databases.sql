@@ -1,3 +1,24 @@
+DROP TABLE IF EXISTS course;
+
+CREATE TABLE course (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    teacher VARCHAR(100) NOT NULL,
+    start_time DATE,
+    end_time DATE,
+    intro TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    cookies TEXT,
+    INDEX idx_name (name)
+);
+
+INSERT INTO course (name, teacher, start_time, end_time, intro, cookies) VALUES
+('数理逻辑', '王拥军', '2024-09-01', '2024-12-12', '本课程分为数理逻辑与集合论两部分，数理逻辑部分的核心在于用数学的方法研究逻辑，集合论部分的关键在于正确认识无限。', 'sessionId=abc123; userId=xyz456'),
+('线性代数', '李四', '2024-09-15', '2024-12-15', '本课程主要介绍线性方程组、矩阵、向量空间等基础知识。', 'sessionId=def789; userId=uvw123'),
+('数据结构', '张三', '2024-10-01', '2024-12-20', '学习数据结构的基本概念、常用数据结构及其应用。', 'sessionId=ghi012; userId=qwe789'),
+('机器学习', '赵六', '2024-09-20', '2024-12-30', '课程涵盖机器学习的基本原理与算法，适合有一定数学基础的学生。', 'sessionId=jkl345; userId=rty456');
+
 DROP TABLE IF EXISTS course_content;
 
 CREATE TABLE course_content (

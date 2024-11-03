@@ -2,6 +2,7 @@
 import {ref} from "vue";
 import ExampleEditor from "@/components/operating/ExampleEditor.vue";
 import ArticleEditor from "@/components/operating/ArticleEditor.vue";
+import ChapterManagement from "@/components/operating/ChapterManagement.vue";
 import QuestionEditor from "@/components/operating/QuestionEditor.vue";
 
 let ContentID = ref(1);
@@ -29,9 +30,15 @@ const handleSelect = (key: string, keyPath: string[]) => {
             <el-icon>
               <Notebook/>
             </el-icon>
-            <span>章节编辑器</span>
+            <span>课程管理器</span>
           </el-menu-item>
           <el-menu-item index="2">
+            <el-icon>
+              <Notebook/>
+            </el-icon>
+            <span>章节编辑器</span>
+          </el-menu-item>
+          <el-menu-item index="3">
             <el-icon>
               <SetUp />
             </el-icon>
@@ -41,9 +48,12 @@ const handleSelect = (key: string, keyPath: string[]) => {
       </el-aside>
       <el-main>
         <div v-if="ContentID === 1">
+          <ChapterManagement />
+        </div>
+        <div v-if="ContentID === 2">
           <ArticleEditor />
         </div>
-        <div class="main-content" v-else-if="ContentID === 2">
+        <div class="main-content" v-else-if="ContentID === 3">
           <QuestionEditor />
         </div>
       </el-main>
