@@ -2,6 +2,9 @@
   <div class="editor-container">
     <div class="tools">
       <el-icon @click="addFormula"><SetUp /></el-icon>
+<!--      <el-dialog v-model="isFormula">-->
+<!--        <FormulaEditor @addFormula="insertFormula" />-->
+<!--      </el-dialog>-->
       <el-dialog v-model="isFormula">
         <FormulaEditor @addFormula="insertFormula" />
       </el-dialog>
@@ -247,6 +250,7 @@ export default {
     },
     addFormula(){
       this.isFormula = true;
+      console.log(this.isFormula)
     },
     uploadQuestion() {
       // 获取选中的课程ID

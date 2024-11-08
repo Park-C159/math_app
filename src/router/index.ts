@@ -10,6 +10,7 @@ import UserLoginView from "@/views/UserLogin.vue";
 import UserRegist from "@/views/UserRegist.vue";
 import test from '@/views/test.vue'
 import TestManagement from "@/views/TestManagement.vue";
+import ScoreView from "@/views/ScoreView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,6 +36,11 @@ const router = createRouter({
       path: '/course_content',
       name: 'course_content',
       component: CourseContent,
+      // meta: { hideHeaderFooter: true }
+    },{
+      path: '/score',
+      name: 'score',
+      component: ScoreView,
       // meta: { hideHeaderFooter: true }
     },{
       path: '/toolbox',

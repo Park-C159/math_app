@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {useRoute} from 'vue-router';  // 获取路由参数
+import {useRoute, useRouter} from 'vue-router';  // 获取路由参数
 import {ref, onMounted, getCurrentInstance} from 'vue';   // Vue的响应式和生命周期
 import axios from 'axios';  // 用于HTTP请求
 import {marked} from 'marked';
@@ -32,6 +32,7 @@ const instance = getCurrentInstance();
 const proxy = instance?.proxy;  // 通过可选链操作符来处理 null 的情况
 // 获取路由实例
 const route = useRoute();
+const router = useRouter();
 
 // 响应式变量来存储课程信息和视频URL
 const markdownContent = ref<string | Promise<string>>('');
@@ -93,27 +94,38 @@ const userAnswer = ref<any[]>([]);
 const correctResults = ref<Array<boolean | null>>([]); // 存储每道题的正确/错误状态
 
 // 获取题目
+// 获取题目
 const getQuestions = async () => {
   try {
+    let userInfo = JSON.parse(localStorage.getItem('userInfo'));
     const response = await proxy?.$http.get('/get_questions', {
-      params: {course_id: route.query.course_id}
+      params: {
+        course_id: route.query.course_id,
+        user_id: userInfo.id,
+      }
     });
     if (response?.data) {
       questions.value = response.data;
-      userAnswer.value = response.data.map((question: Question) =>
-          question.question_type === 'flow'
-              ? new Array(question.steps?.length || 0).fill('')
-              : ''
-      );
-      // userAnswer.value = new Array(response.data.length).fill('');  // 初始化用户答案数组
+      userAnswer.value = response.data.map((question: Question) => {
+        // 初始化答案，填入已存在的 user_answer 或空字符串
+        if (question.question_type === 'flow') {
+          return question.steps?.map((_, i) => question?.user_answer?.[i] || '') || [];
+        } else {
+          return question?.user_answer || '';
+        }
+      });
     }
   } catch (error) {
     console.error('Error fetching questions:', error);
   }
 };
 
+
 // 提交并校准答案
 const submitAnswer = () => {
+  let user_answer:any[] = []
+  let userInfo = JSON.parse(localStorage.getItem('userInfo'));
+
   questions.value.forEach((question, index) => {
     const userAns = userAnswer.value[index];
     const correctAns = question.correct_answer;
@@ -121,7 +133,6 @@ const submitAnswer = () => {
     if (question.question_type === 'choice') {
       // 校准选择题答案
       question.check = (userAns === correctAns);
-      // console.log(questions);
       correctResults.value[index] = (userAns === correctAns);
     } else if (question.question_type === 'blank') {
       // 校准填空题答案
@@ -146,13 +157,38 @@ const submitAnswer = () => {
       correctResults.value[index] = null;
 
     }
-  });
 
+
+    user_answer.push({
+      user_id: userInfo.id,
+      question_id: question.id,
+      user_answer: userAns,
+      is_correct: question.check,
+    });
+
+  });
+  proxy?.$http.put('/answered_questions', {
+    user_answer:  JSON.stringify(user_answer),
+  }).then(res=>{
+    getQuestions()
+    // console.log(res);
+
+  })
   // 显示结果（在控制台打印结果数组）
-  console.log('校准结果：', correctResults.value);
   const correctCount = correctResults.value.filter(result => result).length;
   alert(`正确答案数量：${correctCount}/${questions.value.length}`);
 };
+
+const scoreView = ()=>{
+  router.push({
+    path: '/score',
+    query: {
+      class_name: route.query.class_name,
+      course_id: route.query.course_id
+    }
+  });
+}
+
 // 在页面加载时获取内容和题目
 onMounted(() => {
   getContent();
@@ -179,6 +215,7 @@ onMounted(() => {
 
     <div class="test">
       <h2>课后练习（公式请用工具箱中的latex生成器）</h2>
+
       <div class="problems" v-for="(question, index) in questions" :key="index">
         <div class="question">
           <div style="margin-bottom: 0.5rem">
@@ -188,20 +225,24 @@ onMounted(() => {
             <span v-if="question.question_type === 'flow'">流程题：</span>
             <MathTextRenderer :raw-text="question.question_text" />
           </div>
+<!--         填空题 -->
           <div v-if="question.question_type === 'blank'" class="blank">
-            <input v-model="userAnswer[index]" placeholder="请在此输入答案，用“,”分隔多个答案"/>
+            <input :disabled="question.answered" v-model="userAnswer[index]" placeholder="请在此输入答案，用“,”分隔多个答案"/>
           </div>
+<!--          选择题-->
           <ul v-if="question.question_type === 'choice'">
             <li v-for="option in question.options" :key="option.option_id">
-              <input type="radio" :name="'mcq_' + index" :value="option.option_label" v-model="userAnswer[index]"/>
+              <input :disabled="question.answered" type="radio" :name="'mcq_' + index" :value="option.option_label" v-model="userAnswer[index]" />
               {{ option.option_label }}. <MathTextRenderer :raw-text="option.option_text" />
             </li>
           </ul>
+
           <ul v-if="question.question_type === 'flow'">
             <li v-for="(step, i) in question.steps" :key="step.step_id" class="flow-block">
               <div class="flow-item">
                 <span v-if="!step.is_hidden"><MathTextRenderer :raw-text="step.step_text" /></span>
                 <el-input
+                    :disabled="question.answered"
                     v-else
                     type="textarea"
                     placeholder="请补全流程"
@@ -215,13 +256,13 @@ onMounted(() => {
             </li>
           </ul>
         </div>
-        <div style="text-align: right;" v-if="question.check">
+        <div style="text-align: right;" v-if="question.answered && question.is_correct">
           <el-icon style="color: green; font-size: 2rem">
             <Check/>
           </el-icon>
           正确
         </div>
-        <div style="text-align: right" v-else-if="question.check==null"></div>
+        <div style="text-align: right" v-else-if="!question.answered"></div>
         <div style="text-align: right" v-else>
           <el-icon style="color: red; font-size: 2rem">
             <Close/>
@@ -229,8 +270,13 @@ onMounted(() => {
           错误
         </div>
 
+        <div v-if="question.answered">
+          正确答案：{{ question.correct_answer }}
+        </div>
+
       </div>
       <el-button class="submit-btn" color="rgb(173, 145, 255)" @click="submitAnswer" plain>提交</el-button>
+      <el-button class="submit-btn" color="rgb(173, 145, 255)" @click="scoreView">成绩概览</el-button>
     </div>
   </main>
 </template>

@@ -1,16 +1,46 @@
 <script setup lang="ts">
 import CourseStruct from "@/components/CourseStruct.vue";
 import DiscussContent from "@/components/DiscussContent.vue";
-import {ref, getCurrentInstance} from 'vue';
+import {ref, getCurrentInstance, onMounted} from 'vue';
 import {UserFilled, Calendar, Location, Document, Setting} from '@element-plus/icons-vue';
+import {useRoute} from "vue-router";
 
 
 // 获取 Vue 实例
 const instance = getCurrentInstance();
 const proxy = instance?.proxy;  // 通过可选链操作符来处理 null 的情况
+const route = useRoute()
 
 const isExpanded = ref(false);
 let ContentID = ref(1);
+const CourseInfo = ref({
+  id: '',
+  name: '',
+  teacher: '',
+  start_time: '',
+  end_time: '',
+  intro: ''
+});
+
+const getCourseInfo = () => {
+  proxy?.$http.get('/course_management', {
+    params: {
+      name: route.query.courseName
+    }
+  }).then((res) => {
+    CourseInfo.value = {
+      id: res.data.id,
+      name: res.data.name,
+      teacher: res.data.teacher,
+      start_time: res.data.start_time,
+      end_time: res.data.end_time,
+      intro: res.data.intro
+    };
+    // console.log(CourseInfo.value);
+  }).catch((err) => {
+    console.error(err);
+  })
+}
 
 // 切换展开/收起
 const toggleExpand = () => {
@@ -24,14 +54,14 @@ const handleSelect = (key: string, keyPath: string[]) => {
 const downloadBook = async () => {
   try {
     const response = await proxy?.$http.get('/download_book', {
-      params:{
+      params: {
         book_name: "sym"
       },
       responseType: 'blob'  // 确保响应类型为 blob，表示二进制数据
     });
 
     // 创建 Blob 对象
-    const blob = new Blob([response?.data], { type: 'application/pdf' });
+    const blob = new Blob([response?.data], {type: 'application/pdf'});
     const url = window.URL.createObjectURL(blob);
 
     // 创建一个链接用于下载文件
@@ -49,35 +79,34 @@ const downloadBook = async () => {
   }
 };
 
+onMounted(() => {
+  getCourseInfo()
+})
 </script>
 
 <template>
   <el-container class="main-container">
     <el-header class="class-header">
-      <div class="title">数理逻辑</div>
+      <div class="title">{{ CourseInfo.name }}</div>
       <div class="info">
         <div class="teacher pd">
           <el-icon>
             <UserFilled/>
           </el-icon>
           <span class="info-title">任课教师：</span>
-          &nbsp;&nbsp;王拥军
+          &nbsp;&nbsp;{{ CourseInfo.teacher }}
         </div>
         <div class="time pd">
           <el-icon>
             <Calendar/>
           </el-icon>
-          <span class="info-title">开课时间：</span>&nbsp;&nbsp;2024-09-01 00:00:00 至 2024-12-12 23:59:59
+          <span class="info-title">开课时间：</span>&nbsp;&nbsp;{{ CourseInfo.start_time }} 至 {{ CourseInfo.end_time }}
         </div>
       </div>
       <!-- 折叠/展开文本 -->
       <div class="details" :class="{ expanded: isExpanded }" @click="toggleExpand">
         <p>
-          本课程分为数理逻辑与集合论两部分，数理逻辑部分的核心在于用数学的方法研究逻辑，集合论部分的关键在于正确认识无限。二者有区别又有联系，都属于广义数理逻辑的范畴。
-        </p>
-        <p>
-          课程全部内容分为八章，其中前五章属于数理逻辑部分，涉及命题演算和谓词演算两个内容，计划大约32学时；后三章是集合论部分，初步介绍公理集合理论，计划大约16学时。<span
-            style="color: lightpink">因为授课对象是数学学院学生，整个课程讲授偏重数学视角。</span>
+          {{ CourseInfo.intro }}
         </p>
       </div>
     </el-header>
@@ -125,7 +154,7 @@ const downloadBook = async () => {
           <CourseStruct courseName="数理逻辑"/>
         </div>
         <div v-else-if="ContentID === 2">
-          <DiscussContent courseName="数理逻辑" />
+          <DiscussContent courseName="数理逻辑"/>
         </div>
         <div v-else-if="ContentID === 3">
           <p>公告内容</p>
@@ -144,12 +173,15 @@ const downloadBook = async () => {
 .main-container {
   padding: 2rem;
 }
-.download-btn{
+
+.download-btn {
   margin-top: 1rem;
 }
-.el-aside{
+
+.el-aside {
   background-color: #1d1e28;
 }
+
 .class-header {
   background-color: #1c1c2c;
   padding: 2rem;

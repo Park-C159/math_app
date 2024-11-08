@@ -66,7 +66,7 @@ VALUES
 
 DROP TABLE IF EXISTS options;
 DROP TABLE IF EXISTS flows;
-
+DROP TABLE IF EXISTS user_answers;
 DROP TABLE IF EXISTS questions;
 
 CREATE TABLE questions (
@@ -100,7 +100,7 @@ CREATE TABLE flows (
 -- 插入选择题
 INSERT INTO questions (course_id, question_type, question_text, correct_answer)
 VALUES
-(1,  'choice', '以下关于数理逻辑的描述，哪一项是正确的？', 'C');
+(5,  'choice', '以下关于数理逻辑的描述，哪一项是正确的？', 'C');
 
 -- 插入选择题的选项
 INSERT INTO options (question_id, option_label, option_text)
@@ -112,10 +112,10 @@ VALUES
 -- 插入填空题
 INSERT INTO questions (course_id, question_type, question_text, correct_answer)
 VALUES
-(1,  'blank', '数理逻辑的发展与______密切相关，除了代数，它还与______密切联系。', '集合论,计算机科学');
+(5,  'blank', '数理逻辑的发展与______密切相关，除了代数，它还与______密切联系。', '集合论,计算机科学');
 -- 插入流程题
 INSERT INTO questions (course_id, question_type, question_text, correct_answer)
-VALUES (1, 'flow', '请按照以下步骤完成命题逻辑推理。已知命题 A 和命题 B，依据逻辑关系推导出最终的结论。', '2, 4');
+VALUES (5, 'flow', '请按照以下步骤完成命题逻辑推理。已知命题 A 和命题 B，依据逻辑关系推导出最终的结论。', '2, 4');
 
 -- 2. 获取刚插入流程题的 ID
 SET @question_id = 3;
@@ -231,3 +231,23 @@ INSERT INTO users (username, password, user_id, phone_number, role, extra) VALUE
 ('teacher_user', 'hashed_password_2', 'T0001', '23456789012', 'teacher', ''),
 ('student_user', 'hashed_password_3', 'SY00000000', '34567890123', 'student', '');
 
+CREATE TABLE user_answers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,                -- 用户ID
+    question_id INT NOT NULL,            -- 题目ID
+    user_answer TEXT NOT NULL,           -- 用户的答案
+    is_correct BOOLEAN NOT NULL,          -- 答案是否正确
+    answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 做题时间
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    INDEX (user_id),                     -- 为用户ID建立索引
+    INDEX (question_id)                  -- 为题目ID建立索引
+);
+
+
+INSERT INTO user_answers (user_id, question_id, user_answer, is_correct) VALUES
+(1, 1, 'A', TRUE),   -- 用户1回答题目1，答案正确
+(1, 2, 'C', FALSE),  -- 用户1回答题目2，答案错误
+(2, 1, 'B', FALSE),  -- 用户2回答题目1，答案错误
+(2, 3, '填空答案', TRUE),  -- 用户2回答题目3，答案正确
+(3, 2, '选择答案', TRUE);  -- 用户3回答题目2，答案正确
