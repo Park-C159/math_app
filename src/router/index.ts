@@ -11,6 +11,8 @@ import UserRegist from "@/views/UserRegist.vue";
 import test from '@/views/test.vue'
 import TestManagement from "@/views/TestManagement.vue";
 import ScoreView from "@/views/ScoreView.vue";
+import TestCenter from "@/views/TestCenter.vue";
+import CheckTest from "@/views/CheckTest.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -42,6 +44,15 @@ const router = createRouter({
       name: 'score',
       component: ScoreView,
       // meta: { hideHeaderFooter: true }
+    },{
+      path: '/test_center',
+      name: 'test_center',
+      component: TestCenter,
+      meta: { hideHeaderFooter: true }
+    },{
+      path: '/check_test',
+      name: 'check_test',
+      component: CheckTest,
     },{
       path: '/toolbox',
       name: 'toolbox',

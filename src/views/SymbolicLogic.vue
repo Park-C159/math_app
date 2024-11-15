@@ -3,13 +3,14 @@ import CourseStruct from "@/components/CourseStruct.vue";
 import DiscussContent from "@/components/DiscussContent.vue";
 import {ref, getCurrentInstance, onMounted} from 'vue';
 import {UserFilled, Calendar, Location, Document, Setting} from '@element-plus/icons-vue';
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 
 
 // 获取 Vue 实例
 const instance = getCurrentInstance();
 const proxy = instance?.proxy;  // 通过可选链操作符来处理 null 的情况
 const route = useRoute()
+const router = useRouter()
 
 const isExpanded = ref(false);
 let ContentID = ref(1);
@@ -78,6 +79,10 @@ const downloadBook = async () => {
     console.error('Error downloading the file:', error);
   }
 };
+
+const testCenter = () => {
+  window.open(`${window.location.origin}/test_center?course_name=${route.query.courseName}`, '_blank')
+}
 
 onMounted(() => {
   getCourseInfo()
@@ -165,6 +170,7 @@ onMounted(() => {
       </el-main>
     </el-container>
     <el-button class="download-btn" color="rgb(173, 145, 255)" @click="downloadBook" plain>下载中心</el-button>
+    <el-button class="download-btn" color="rgb(173, 145, 255)" @click="testCenter" plain>考试中心</el-button>
 
   </el-container>
 </template>
@@ -176,6 +182,7 @@ onMounted(() => {
 
 .download-btn {
   margin-top: 1rem;
+  margin-left: 0 !important;
 }
 
 .el-aside {

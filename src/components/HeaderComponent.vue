@@ -162,7 +162,6 @@ onMounted(() => {
     </el-menu>
 
   </nav>
-
 </template>
 
 <style scoped>

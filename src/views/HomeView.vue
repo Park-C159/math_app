@@ -13,7 +13,7 @@ const images = [buaa1, buaa2, buaa3, buaa4, buaa5];
 <template>
   <main class="container">
     <div class="carousel">
-      <el-carousel height="300px" arrow="always">
+      <el-carousel height="500px" arrow="always">
         <el-carousel-item v-for="(image, index) in images" :key="index">
           <img :src="image" :alt="'buaa' + (index + 1)" class="carousel-image" />
         </el-carousel-item>
@@ -27,7 +27,7 @@ const images = [buaa1, buaa2, buaa3, buaa4, buaa5];
 <style scoped>
 .container{
   padding: 0 5%;
-  min-height: calc(300px + 30px + 300px);
+  min-height: calc(500px + 30px + 300px);
   z-index: 1;
 }
 .carousel{

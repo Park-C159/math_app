@@ -9,12 +9,14 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import axios from "./services/request"
 import mavonEditor from 'mavon-editor'
 import 'mavon-editor/dist/css/index.css'
+import * as echarts from 'echarts'
 
 
 
 const app = createApp(App)
 
 app.config.globalProperties.$http = axios
+app.config.globalProperties.$echart = echarts;
 
 app.use(router)
 app.use(ElementPlus)

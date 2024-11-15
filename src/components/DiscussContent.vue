@@ -97,11 +97,9 @@ onMounted(() => {
             <el-avatar :icon="UserFilled"/>
           </div>
           <div class="discussion-main">
-
             <div class="user">{{ discussion.author }}&nbsp;&nbsp;<span
                 style="font-size: small">{{ dayjs(discussion.created_at).format('YYYY-MM-DD') }}</span></div>
             <div class="text">{{ discussion.content }}</div>
-
             <div class="reply" v-if="discussion.first_reply.reply_time">
               <div class="reply-avatar">
                 <el-avatar size="small" :icon="UserFilled"/>

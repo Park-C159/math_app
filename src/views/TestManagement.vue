@@ -24,17 +24,17 @@
       </el-aside>
       <el-main>
         <div ref="pdfContent" class="pdf-content">
-          <div class="problems" v-if="questions.length !== 0" v-for="(question, index) in questions" :key="index">
-            <div class="info" :v-model="pageInfo" style="display: none">
-              <h1 style="text-align: center; font-size: 32px">{{ pageInfo.title }}</h1>
-              <div class="userInfo">
-                <div>考生姓名: ______________</div>
-                <div>学号: ______________</div>
-                <div>考场: ______________</div>
-              </div>
-              <p style="font-size: 12px">说明: 请仔细阅读每道题目，确保答题完整。</p>
-              <p style="font-size: 12px; margin-bottom: 1rem">注意事项: 请在答题纸上写下答案，不要在试卷上作答。</p>
+          <div class="info" :v-model="pageInfo" style="display: none">
+            <h1 style="text-align: center; font-size: 32px">{{ pageInfo.title }}</h1>
+            <div class="userInfo">
+              <div>考生姓名: ______________</div>
+              <div>学号: ______________</div>
+              <div>考场: ______________</div>
             </div>
+            <p style="font-size: 12px">说明: 请仔细阅读每道题目，确保答题完整。</p>
+            <p style="font-size: 12px; margin-bottom: 1rem">注意事项: 请在答题纸上写下答案，不要在试卷上作答。</p>
+          </div>
+          <div class="problems" v-if="questions.length !== 0" v-for="(question, index) in questions" :key="index">
             <div class="question">
               <div style="margin-bottom: 0.5rem">
                 <span v-if="question.question_type === 'choice'">选择题：</span>
@@ -98,6 +98,8 @@
           <div class="button-list">
             <el-button @click="isAdd = true" type="warning">添加习题</el-button>
             <el-button @click="isOutput = true" type="primary">导出PDF</el-button>
+            <el-button @click="deleteTest" type="danger">删除考试</el-button>
+            <el-button @click="checkTest" type="success">阅卷中心</el-button>
           </div>
         </div>
       </el-main>
@@ -167,6 +169,7 @@ export default {
         steps: [],
         check: null
       },
+      course_id: 0,
       menuItems: [],
     };
   },
@@ -195,24 +198,36 @@ export default {
     }
   },
   methods: {
+    checkTest() {
+      this.$router.push("/check_test");
+    },
+    deleteTest() {
+      this.$http.delete('/course', {
+        params: {
+          course_id: this.course_id,
+        }
+      }).then((res) => {
+        console.log(res);
+        this.getTestList()
+      })
+
+    },
     selectMenu(key, kePath) {
-      console.log(key, kePath);
+      this.course_id = key;
       this.getTestContent(key)
     },
     getTestContent(courseId) {
       this.$http.get(`/question`, {
-        params: { course_id: courseId }
-      })
-          .then(response => {
-            // 处理成功响应
-            console.log("题目内容:", response.data);
-            // 你可以将获取的数据保存到组件的状态中，比如：
-            this.questions = response.data;
-          })
-          .catch(error => {
-            // 处理错误响应
-            console.error("请求失败:", error);
-          });
+        params: {course_id: courseId}
+      }).then(response => {
+        // 处理成功响应
+        console.log("题目内容:", response.data);
+        // 你可以将获取的数据保存到组件的状态中，比如：
+        this.questions = response.data;
+      }).catch(error => {
+        // 处理错误响应
+        console.error("请求失败:", error);
+      });
     },
     getTestList() {
       try {
@@ -223,8 +238,8 @@ export default {
         }).then(res => {
           if (res.status === 200) {
             this.menuItems = res.data
-            console.log(this.menuItems)
           }
+          this.course_id = res.data[0].id
 
         }).catch(err => {
           console.error('Error fetching course data:', error);
@@ -333,8 +348,9 @@ export default {
 
     },
     deleteQuestion(index, question_id) {
+      console.log(question_id)
       this.$http.delete('/question', {
-        params: { question_id: question_id }
+        params: {question_id: question_id}
       })
           .then(response => {
             this.questions.splice(index, 1);  // 删除成功后移除对应项

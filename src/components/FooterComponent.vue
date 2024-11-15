@@ -11,7 +11,7 @@
 <template>
 <footer class="footer">
   <div class="bot-footer" :style="{ paddingTop: isRootPath ? '120px' : '20px' }">
-    <img src="@/assets/images/mathword.svg" width="150"><br /> Copyright © [Bodan Chen and Wang] - 2021
+    <img src="@/assets/images/mathword.svg" width="150"><br /> Copyright © [Tianhao Yuan and Yongjun Wang] - 2024
   </div>
 </footer>
 </template>
