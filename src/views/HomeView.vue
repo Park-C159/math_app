@@ -32,7 +32,7 @@ const images = [buaa1, buaa2, buaa3, buaa4, buaa5];
 }
 .carousel{
   margin-top: 20px;
-  height: 300px;
+  height: 500px;
 }
 .carousel-image {
   width: 100%;

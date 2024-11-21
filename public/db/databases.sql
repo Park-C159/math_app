@@ -1,23 +1,54 @@
+DROP DATABASE IF EXISTS math;
+
+CREATE DATABASE math;
+
+USE math;
+
+DROP TABLE IF EXISTS exams;
 DROP TABLE IF EXISTS course;
 
 CREATE TABLE course (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    teacher VARCHAR(100) NOT NULL,
-    start_time DATE,
-    end_time DATE,
-    intro TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    cookies TEXT,
+    name VARCHAR(255) NOT NULL, -- 课程名称
+    teacher VARCHAR(100) NOT NULL, -- 任课老师
+    start_time DATE, -- 开始时间
+    end_time DATE,  --  结束时间
+    intro TEXT, -- 课程介绍
+    period VARCHAR(32), -- 计划学时
+    credit INT,  -- 学分
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 课程创建时间
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 课程更新时间
+    cookies TEXT, -- 外部字段
     INDEX idx_name (name)
 );
 
 INSERT INTO course (name, teacher, start_time, end_time, intro, cookies) VALUES
-('数理逻辑', '王拥军', '2024-09-01', '2024-12-12', '本课程分为数理逻辑与集合论两部分，数理逻辑部分的核心在于用数学的方法研究逻辑，集合论部分的关键在于正确认识无限。', 'sessionId=abc123; userId=xyz456'),
-('线性代数', '李四', '2024-09-15', '2024-12-15', '本课程主要介绍线性方程组、矩阵、向量空间等基础知识。', 'sessionId=def789; userId=uvw123'),
-('数据结构', '张三', '2024-10-01', '2024-12-20', '学习数据结构的基本概念、常用数据结构及其应用。', 'sessionId=ghi012; userId=qwe789'),
-('机器学习', '赵六', '2024-09-20', '2024-12-30', '课程涵盖机器学习的基本原理与算法，适合有一定数学基础的学生。', 'sessionId=jkl345; userId=rty456');
+('数理逻辑', '王拥军', '2024-09-01', '2024-12-12', '本课程分为数理逻辑与集合论两部分，数理逻辑部分的核心在于用数学的方法研究逻辑，集合论部分的关键在于正确认识无限。', 'sessionId=abc123; userId=xyz456');
+
+INSERT INTO course (name, teacher, start_time, end_time, intro, period, credit, cookies) VALUES
+('高等数学', '张老师', '2024-03-01', '2024-06-30', '本课程旨在培养学生的数学思维和解决实际问题的能力。', '64', 4, '无'),
+('计算机科学导论', '李教授', '2024-09-01', '2024-12-31', '介绍计算机科学的基本概念和原理。', '48', 3, '无'),
+('英语', '王老师', '2024-03-01', '2024-06-30', '提高学生的英语听说读写能力。', '64', 2, '无'),
+('物理', '赵博士', '2024-09-01', '2024-12-31', '探索物理世界的基本原理。', '48', 3, '无'),
+('化学', '钱老师', '2024-03-01', '2024-06-30', '化学是研究物质的组成、结构、性质和变化规律的科学。', '64', 4, '无');
+
+
+CREATE TABLE exams (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(32) NOT NULL,
+    course_id INT, -- 考试所属课程，外键
+    start_time DATETIME, -- 考试开始时间
+    end_time DATETIME, -- 考试截止时间
+    is_checked BOOLEAN, -- 是否批改完成
+
+    FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
+);
+-- 插入第一次考试记录
+INSERT INTO exams (name, course_id, start_time, end_time, is_checked) VALUES
+('期中考试', (SELECT id FROM course WHERE name = '数理逻辑'), '2024-10-15 09:00:00', '2024-10-15 11:00:00', FALSE);
+-- 插入第二次考试记录
+INSERT INTO exams (name, course_id, start_time, end_time, is_checked) VALUES
+('期末考试', (SELECT id FROM course WHERE name = '数理逻辑'), '2024-12-01 09:00:00', '2024-12-01 11:00:00', FALSE);
 
 DROP TABLE IF EXISTS course_content;
 
