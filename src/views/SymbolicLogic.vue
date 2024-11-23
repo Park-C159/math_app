@@ -81,7 +81,8 @@ const downloadBook = async () => {
 };
 
 const testCenter = () => {
-  window.open(`${window.location.origin}/test_center?course_name=${route.query.courseName}`, '_blank')
+  router.push(`/test_list?course_id=${1}`); // 获取头部需要更改
+  // window.open(`${window.location.origin}/test_center?course_name=${route.query.courseName}`, '_blank')
 }
 
 onMounted(() => {
