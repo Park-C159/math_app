@@ -15,15 +15,16 @@
         <div style="margin-bottom: 0.5rem">
           <span v-if="question.question_type === 'choice'">选择题：</span>
           <span v-if="question.question_type === 'blank'">填空题：</span>
-          <span v-if="question.question_type === 'proof'">证明题：</span>
+          <span v-if="question.question_type === 'proof'">解答题：</span>
           <span v-if="question.question_type === 'flow'">流程题：</span>
+          <span>（{{ question.score }}分）</span>
           <MathTextRenderer :raw-text="question.question_text"/>
         </div>
         <!-- 证明题 -->
         <el-input
             v-if="question.question_type === 'proof'"
             type="textarea"
-            placeholder="请补全流程"
+            placeholder="请输入解答过程"
             rows="4"
         ></el-input>
         <!-- 填空题 -->
@@ -83,29 +84,62 @@
   <el-dialog v-model="isAdd">
     <ExampleEditor @addData="addQuestion"/>
   </el-dialog>
+
   <el-dialog
       v-model="isPosition"
-      width="500"
-      title="请选择题目位置"
+      width="600"
+      title="请输入题目基本信息"
       append-to-body
   >
-    考试：
+
+    <span>考试：</span>
     <el-switch v-model="isTest"></el-switch>
     <br>
-    <div v-if="isTest">
-      <el-input placeholder="请输入考试标题" v-model="pageInfo.title"></el-input>
-      <el-select
-          v-model="courseValue"
-          placeholder="选择所属课程"
-      >
-        <el-option
-            v-for="item in courseOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-        />
-      </el-select>
-    </div>
+    <br>
+    <el-form
+        v-if="isTest"
+        :model="exam"
+        label-width="auto"
+        style="max-width: 600px">
+      <el-form-item label="考试标题">
+        <el-input v-model="exam.name" placeholder="请输入考试标题"/>
+      </el-form-item>
+      <el-form-item label="课程">
+        <el-select v-model="exam.course_id" placeholder="请选择考试课程">
+          <el-option
+              v-for="(course, index) in exam.courses"
+              :label="course.name"
+              :value="course.id"
+              :key="index"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="考试时间">
+        <el-col :span="11">
+          <el-date-picker
+              v-model="exam.start_time"
+              type="datetime"
+              placeholder="请选择开始时间"
+              style="width: 100%"
+          />
+        </el-col>
+        <el-col :span="2" style="text-align: center;">
+          <span class="text-gray-500">-</span>
+        </el-col>
+        <el-col :span="11">
+          <el-date-picker
+              type="datetime"
+              v-model="exam.end_time"
+              placeholder="请选择结束时间"
+              style="width: 100%"
+          />
+        </el-col>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="uploadExam">上传</el-button>
+        <el-button @click="isPosition = false">取消</el-button>
+      </el-form-item>
+    </el-form>
     <el-cascader
         v-else
         v-model="value"
@@ -113,9 +147,9 @@
         :props="cascaderProps"
         @change="handleChange"
     />
-    <span slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="uploadQuestion">上传</el-button>
-    </span>
+<!--    <span slot="footer" class="dialog-footer">-->
+<!--      <el-button type="primary" @click="uploadQuestion">上传</el-button>-->
+<!--    </span>-->
   </el-dialog>
 </template>
 
@@ -132,10 +166,18 @@ export default {
   },
   data() {
     return {
+      exam: {
+        name: null,
+        courses: {},
+        course_id: null,
+        start_time: null,
+        end_time: null,
+      },
+      form: {},
       courseValue: '',
       courseOptions: [],
       courseNameList: [],
-      isTest: false,
+      isTest: true,
       isOutput: false,
       pageInfo: {
         title: ""
@@ -149,23 +191,6 @@ export default {
       isAdd: false,
       userAnswer: [],
       questions: [],
-      formatQuestion: {
-        question_text: '请选择正确的语法$E=mc^2$',
-        question_type: 'choice',
-        options: [{
-          option_label: 'A',
-          option_text: "I love u.",
-        }, {
-          option_label: 'B',
-          option_text: "I love u very much.",
-        }, {
-          option_label: 'C',
-          option_text: "I love you best.",
-        },],
-        steps: [],
-        check: null
-      }
-
     };
   },
   computed: {
@@ -193,6 +218,30 @@ export default {
     }
   },
   methods: {
+    uploadExam(){
+      this.$http.post("exams", {
+        exam: this.exam,
+        questions: this.questions,
+      }).then(res=>{
+        let response = res.data
+        if(response.code === 200){
+          this.$message.success(response.msg);
+          this.isShow = false;
+
+        }else{
+          this.$message.warning(response.msg)
+        }
+
+      }).catch(err=>{
+        this.$message.error(err.message);
+        console.log(err);
+      })
+    },
+    async getCourseList() {
+      this.$http.get("course_management").then((response) => {
+        this.exam.courses = response.data;
+      })
+    },
     async getCourseName() {
       await this.$http.get('/get_course_name').then(res => {
         this.courseNameList = res.data
@@ -313,19 +362,31 @@ export default {
     },
     deleteQuestion(index) {
       this.questions.splice(index, 1);
-      console.log(index);
+      this.updateQuestions()
     },
     // 可根据需要添加答案验证逻辑
     test() {
-      this.questions.push(this.formatQuestion)
+      let questions = localStorage.getItem('edit-questions');
+      if (questions) {
+        let questions_json = JSON.parse(questions);
+        this.questions = questions_json;
+      } else {
+
+      }
+      // this.questions.push(this.formatQuestion)
     },
     addQuestion(question) {
       this.questions.push(question);
+      this.updateQuestions()
       this.isAdd = false;
+    },
+    updateQuestions() {
+      localStorage.setItem('edit-questions', JSON.stringify(this.questions));
     }
   },
   async mounted() {
     await this.getCourse()
+    await this.getCourseList()
     this.test()
   }
 };
