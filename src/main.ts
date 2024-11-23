@@ -15,6 +15,8 @@ import * as echarts from 'echarts'
 
 const app = createApp(App)
 
+app.provide('baseURL', import.meta.env.VITE_BASE_API || 'http://localhost:5000/api/')
+
 app.config.globalProperties.$http = axios
 app.config.globalProperties.$echart = echarts;
 
