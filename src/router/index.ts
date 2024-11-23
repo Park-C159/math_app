@@ -13,6 +13,8 @@ import TestManagement from "@/views/TestManagement.vue";
 import ScoreView from "@/views/ScoreView.vue";
 import TestCenter from "@/views/TestCenter.vue";
 import CheckTest from "@/views/CheckTest.vue";
+import TestList from "@/views/TestList.vue";
+import BrowserExam from "@/views/BrowserExam.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -49,6 +51,15 @@ const router = createRouter({
       name: 'test_center',
       component: TestCenter,
       meta: { hideHeaderFooter: true }
+    },{
+      path: '/browser_exam',
+      name: 'browser_exam',
+      component: BrowserExam,
+      meta: { hideHeaderFooter: true }
+    },{
+      path: '/test_list',
+      name: 'test_list',
+      component: TestList,
     },{
       path: '/check_test',
       name: 'check_test',
