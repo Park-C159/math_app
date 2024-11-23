@@ -4,6 +4,9 @@ CREATE DATABASE math;
 
 USE math;
 
+DROP TABLE IF EXISTS course_user;
+DROP TABLE IF EXISTS exams_question;
+DROP TABLE IF EXISTS user_answer;
 DROP TABLE IF EXISTS exams;
 DROP TABLE IF EXISTS course;
 
@@ -25,12 +28,12 @@ CREATE TABLE course (
 INSERT INTO course (name, teacher, start_time, end_time, intro, cookies) VALUES
 ('数理逻辑', '王拥军', '2024-09-01', '2024-12-12', '本课程分为数理逻辑与集合论两部分，数理逻辑部分的核心在于用数学的方法研究逻辑，集合论部分的关键在于正确认识无限。', 'sessionId=abc123; userId=xyz456');
 
-INSERT INTO course (name, teacher, start_time, end_time, intro, period, credit, cookies) VALUES
-('高等数学', '张老师', '2024-03-01', '2024-06-30', '本课程旨在培养学生的数学思维和解决实际问题的能力。', '64', 4, '无'),
-('计算机科学导论', '李教授', '2024-09-01', '2024-12-31', '介绍计算机科学的基本概念和原理。', '48', 3, '无'),
-('英语', '王老师', '2024-03-01', '2024-06-30', '提高学生的英语听说读写能力。', '64', 2, '无'),
-('物理', '赵博士', '2024-09-01', '2024-12-31', '探索物理世界的基本原理。', '48', 3, '无'),
-('化学', '钱老师', '2024-03-01', '2024-06-30', '化学是研究物质的组成、结构、性质和变化规律的科学。', '64', 4, '无');
+-- INSERT INTO course (name, teacher, start_time, end_time, intro, period, credit, cookies) VALUES
+-- ('高等数学', '张老师', '2024-03-01', '2024-06-30', '本课程旨在培养学生的数学思维和解决实际问题的能力。', '64', 4, '无'),
+-- ('计算机科学导论', '李教授', '2024-09-01', '2024-12-31', '介绍计算机科学的基本概念和原理。', '48', 3, '无'),
+-- ('英语', '王老师', '2024-03-01', '2024-06-30', '提高学生的英语听说读写能力。', '64', 2, '无'),
+-- ('物理', '赵博士', '2024-09-01', '2024-12-31', '探索物理世界的基本原理。', '48', 3, '无'),
+-- ('化学', '钱老师', '2024-03-01', '2024-06-30', '化学是研究物质的组成、结构、性质和变化规律的科学。', '64', 4, '无');
 
 
 CREATE TABLE exams (
@@ -40,6 +43,8 @@ CREATE TABLE exams (
     start_time DATETIME, -- 考试开始时间
     end_time DATETIME, -- 考试截止时间
     is_checked BOOLEAN, -- 是否批改完成
+    is_submitted BOOLEAN DEFAULT FALSE  , -- 是否已经提交
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 考试发布时间
 
     FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
 );
@@ -48,7 +53,129 @@ INSERT INTO exams (name, course_id, start_time, end_time, is_checked) VALUES
 ('期中考试', (SELECT id FROM course WHERE name = '数理逻辑'), '2024-10-15 09:00:00', '2024-10-15 11:00:00', FALSE);
 -- 插入第二次考试记录
 INSERT INTO exams (name, course_id, start_time, end_time, is_checked) VALUES
-('期末考试', (SELECT id FROM course WHERE name = '数理逻辑'), '2024-12-01 09:00:00', '2024-12-01 11:00:00', FALSE);
+('期末考试', (SELECT id FROM course WHERE name = '数理逻辑'), '2024-11-21 09:00:00', '2024-12-01 11:00:00', TRUE);
+
+DROP TABLE IF EXISTS question_option;
+DROP TABLE IF EXISTS question_flow;
+DROP TABLE IF EXISTS question;
+CREATE TABLE question (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    type ENUM('choice', 'blank', 'proof', 'flow') NOT NULL,  -- 题目类型
+    question_text TEXT NOT NULL,      -- 题干内容
+    score FLOAT ,
+    correct_answer TEXT,     -- 正确答案（选择题的正确选项、填空题的正确答案）
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- 创建时间
+);
+CREATE TABLE question_option (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question_id INT NOT NULL,         -- 对应的题目ID
+    option_label CHAR(1) NOT NULL,    -- 选项标识（如 'A', 'B', 'C', 'D'）
+    option_text TEXT NOT NULL,        -- 选项内容
+    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE  -- 外键，删除题目时级联删除选项
+);
+
+CREATE TABLE question_flow (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question_id INT NOT NULL,         -- 对应的题目ID
+    step_label BIGINT NOT NULL,    -- 选项标识（如 'A', 'B', 'C', 'D'）
+    step_text TEXT NOT NULL,        -- 选项内容
+    is_hidden BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE  -- 外键，删除题目时级联删除选项
+);
+-- 插入选择题
+INSERT INTO question (type, question_text, score, correct_answer)
+VALUES ('choice', '以下哪个选项是正确的？', 5, 'A');
+
+-- 获取刚才插入的选择题的 ID（假设 ID 为 1）
+-- 插入选择题选项
+INSERT INTO question_option (question_id, option_label, option_text)
+VALUES
+(1, 'A', '选项A: 正确'),
+(1, 'B', '选项B: 错误'),
+(1, 'C', '选项C: 错误'),
+(1, 'D', '选项D: 错误');
+
+-- 插入填空题
+INSERT INTO question (type, question_text, score, correct_answer)
+VALUES ('blank', '___ 是地球的唯一卫星', 5, '月亮');
+
+-- 插入证明题
+INSERT INTO question (type, question_text, score, correct_answer)
+VALUES ('proof', '若两个数的和为偶数，则它们的积也是偶数', 10, "['http://localhost:5000/api/uploads/20241121225952_dang.png','http://localhost:5000/api/uploads/20241121225952_dang.png']");
+
+-- 插入流程题
+INSERT INTO question (type, question_text, score, correct_answer)
+VALUES ('flow', '从家到公司，以下哪一项是正确的交通流程？', 7, "['', '第二步：下车', '']");
+
+-- 获取刚才插入的流程题的 ID（假设 ID 为 4）
+-- 插入流程题的步骤
+INSERT INTO question_flow (question_id, step_label, step_text, is_hidden)
+VALUES
+(4, 1, '第一步：乘车', FALSE),
+(4, 2, '第二步：下车', TRUE),
+(4, 3, '第三步：进入办公室', FALSE);
+
+CREATE TABLE exams_question (
+    exam_id INT NOT NULL,
+    question_id INT NOT NULL,
+    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE,  -- 外键，删除题目时级联删除选项
+    FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE  -- 外键，删除题目时级联删除选项
+);
+-- 将题目插入到考试中
+INSERT INTO exams_question (exam_id, question_id)
+VALUES
+(2, 1),  -- 将选择题插入期中考试
+(2, 2),  -- 将填空题插入期中考试
+(2, 3),  -- 将证明题插入期末考试
+(2, 4);  -- 将流程题插入期末考试
+
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    user_id VARCHAR(50),
+    phone_number VARCHAR(15),
+    role ENUM('admin', 'teacher', 'student') NOT NULL,
+    extra TEXT
+);
+
+INSERT INTO users (username, password, user_id, phone_number, role, extra) VALUES
+('admin_user', 'Admin@123', 'A0001', '12345678901', 'admin', ''),
+('teacher_user', 'hashed_password_2', 'T0001', '23456789012', 'teacher', ''),
+('student_user', 'hashed_password_3', 'SY00000000', '34567890123', 'student', '');
+
+-- 创建 user_answer 表，设置 user_id 和 question_id 为联合主键
+CREATE TABLE user_answer (
+    user_id INT NOT NULL,                -- 用户ID
+    question_id INT NOT NULL,            -- 题目ID
+    user_answer TEXT NOT NULL,           -- 用户的答案
+    is_correct BOOLEAN DEFAULT(NULL),    -- 答案是否正确
+    score INT DEFAULT 0,
+    answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 做题时间
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, question_id)  -- 设置 user_id 和 question_id 为联合主键
+);
+
+-- 插入数据
+INSERT INTO user_answer (user_id, question_id, user_answer, is_correct) VALUES
+(2, 1, 'A', TRUE),   -- 用户1回答题目1，答案正确
+(2, 2, '月球', FALSE),  -- 用户2回答题目1，答案错误
+(3, 1, 'D', NULL);   -- 用户3回答题目1，答案未评判
+
+
+CREATE TABLE course_user (
+    course_id int NOT NULL,
+    user_id INT NOT NULL,
+    FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, -- 外键
+    PRIMARY KEY (user_id, course_id)
+);
+
+INSERT INTO course_user (course_id, user_id) VALUES(1,1),(1,2),(1,3);
+
 
 DROP TABLE IF EXISTS course_content;
 
@@ -245,22 +372,7 @@ INSERT INTO replies (discussion_id, replier, reply_content) VALUES
 
 -- 此处仅插入部分讨论和回复，其他讨论与回复可以以类似方式继续插入
 -- 注意：要保证每个 discussion_id 对应正确的讨论
-DROP TABLE IF EXISTS users;
 
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    user_id VARCHAR(50) NOT NULL,
-    phone_number VARCHAR(15),
-    role ENUM('admin', 'teacher', 'student') NOT NULL,
-    extra TEXT
-);
-
-INSERT INTO users (username, password, user_id, phone_number, role, extra) VALUES
-('admin_user', 'Admin@123', 'A0001', '12345678901', 'admin', ''),
-('teacher_user', 'hashed_password_2', 'T0001', '23456789012', 'teacher', ''),
-('student_user', 'hashed_password_3', 'SY00000000', '34567890123', 'student', '');
 
 CREATE TABLE user_answers (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -269,7 +381,7 @@ CREATE TABLE user_answers (
     user_answer TEXT NOT NULL,           -- 用户的答案
     is_correct BOOLEAN NOT NULL,          -- 答案是否正确
     answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 做题时间
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY                                                                           (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
     INDEX (user_id),                     -- 为用户ID建立索引
     INDEX (question_id)                  -- 为题目ID建立索引
