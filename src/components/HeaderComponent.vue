@@ -124,7 +124,7 @@ onMounted(() => {
 
       </div>
       <div class="right">
-        <div class="use-illlustrate" @click="consoleBox">工作台</div>
+        <div class="use-illlustrate" @click="consoleBox" v-if="userLevel!='student' && userLevel!=null">工作台</div>
         <div class="login avatar" v-if="isLogin">
           <el-dropdown>
             <el-avatar> {{ Avatar }}</el-avatar>

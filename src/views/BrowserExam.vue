@@ -87,26 +87,31 @@ const getQuestions = () => {
     let response = res.data
 
     if (response.code === 200) {
-      let totalScore = 0
       let question: Question[] = []
 
-      response.data.map((data: Question) => {
+      response.data.forEach((data: Question) => {
         let fileList = null
         let userAnswerFlow = null
         let correctAnswer: string | string[] = data.correct_answer
+        console.log(data)
 
-        if(data.user_answer){
+        if (data.user_answer) {
+          data.user_answer.user_id = UserInfo.value?.id as number
           if (data.type === 'proof') {
             // 格式化并解析正确答案和用户答案
             correctAnswer = formatAndParseAnswer(correctAnswer as string) // correct_answer可能是string或string[]
             let formatUserAnswer = data.user_answer.user_answer
             fileList = formatAndParseAnswer(formatUserAnswer) // 解析用户答案
-          } else if (data.type === 'flow') {
-            let formatUserAnswer = data.user_answer.user_answer
-            userAnswerFlow = formatAndParseAnswer(formatUserAnswer) // 解析流式问题的用户答案
+          } else {
+            if (data.type === 'flow') {
+              let formatUserAnswer = data.user_answer.user_answer
+              if(formatUserAnswer === '') {
+                formatUserAnswer = '[]'
+              }
+              userAnswerFlow = formatAndParseAnswer(formatUserAnswer) // 解析流式问题的用户答案
+            }
           }
-
-        }else{
+        } else {
           if (data.type === 'proof') {
             correctAnswer = formatAndParseAnswer(correctAnswer as string) // correct_answer可能是string或string[]
           }
@@ -123,7 +128,6 @@ const getQuestions = () => {
           }
         }
 
-        totalScore += data.user_answer.score
         // 将处理后的数据推送到问题数组中
         question.push({
           id: data.id,
@@ -142,13 +146,11 @@ const getQuestions = () => {
 
       // 更新到状态管理或其他地方
       Questions.value = question
-      TotalScore.value = totalScore
     }
-
   })
 
-
 }
+
 
 // 图片上传
 const handleUploadSuccess = (response: any, file: UploadFile, fileList: string[]) => {
@@ -196,7 +198,7 @@ onMounted(() => {
   <div id="container" class="container">
     <div class="info">
       <h1 class="exam-title">{{ ExamTitle }}</h1>
-      <h2 style="text-align: right">总分：<span style="color: red">{{TotalScore}}</span>分</h2>
+      <h2 style="text-align: right">总分：<span style="color: red">{{ TotalScore }}</span>分</h2>
     </div>
 
     <div class="questions">
@@ -300,7 +302,7 @@ onMounted(() => {
 
         <div class="score">
           <span>得分：</span>
-          <span>{{question.user_answer.score}}/{{question.score}}</span>
+          <span>{{ question.user_answer.score }}/{{ question.score }}</span>
         </div>
       </div>
     </div>
@@ -370,13 +372,15 @@ onMounted(() => {
   width: 100%;
 
 }
-.proof-answer{
+
+.proof-answer {
   display: flex;
   flex-direction: row;
 
   justify-content: space-around;
 }
-.proof-answer>div{
+
+.proof-answer > div {
   width: 45%;
 }
 </style>

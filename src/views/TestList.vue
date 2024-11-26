@@ -27,6 +27,8 @@ interface UserInfoInterface {
 
 const ExamList = ref<Exam[]>([]);
 const UserInfo = ref<UserInfoInterface>();
+const isLogin = ref(false);
+const userLevel = ref('')
 
 
 const getExamList = () => {
@@ -38,7 +40,7 @@ const getExamList = () => {
     let response = res.data;
     if (response.code === 200) {
       ExamList.value = response.data
-      ElMessage.success(response.msg)
+      // ElMessage.success(response.msg)
     } else {
       ElMessage({
         message: response.msg,
@@ -67,12 +69,42 @@ const toBrowserExam = (exam_id: number, exam_name: string) => {
 const toCheckCenter = (exam_id: number, exam_name: string) => {
   window.open(`${window.location.origin}/check_test?exam_id=${exam_id}&exam_name=${exam_name}&course_id=${route.query.course_id}`, '_blank')
 }
+const deleteExam = (exam_id: number) => {
+  proxy?.$http.delete("exams",{
+    params: {
+      exam_id: exam_id,
+    }
+  }).then((res) => {
+    let response = res.data;
+    if (response.code === 200) {
+      getExamList()
+      ElMessage({
+        type: 'success',
+        message: response.msg
+      })
+    }else{
+      ElMessage({
+        type: 'error',
+        message: response.msg,
+      })
+    }
+  }).catch((err) => {
+    console.error(err)
+    ElMessage({
+      type: 'error',
+      message: "服务器开小差了，请联系管理员！",
+    })
+  })
+}
 
 onMounted(() => {
+  let is_login = localStorage.getItem('isLogin') === 'true';
   let userInfo = localStorage.getItem('userInfo');
   if (userInfo) {
     UserInfo.value = JSON.parse(userInfo) as UserInfoInterface;
+    userLevel.value = UserInfo.value.role;
   }
+  isLogin.value = is_login;
   getExamList()
 })
 
@@ -116,10 +148,21 @@ onMounted(() => {
               type="primary"
               link
               :disabled="UserInfo?.role==='student'"
+              v-if="userLevel!='student' && userLevel!='' && userLevel!=null"
               @click="toCheckCenter(exam.id, exam.name)"
 
           >
             阅卷中心
+          </el-button>
+          <el-button
+              type="primary"
+              link
+              :disabled="UserInfo?.role==='student'"
+              v-if="userLevel!='student' && userLevel!='' && userLevel!=null"
+              @click="deleteExam(exam.id)"
+
+          >
+            删除
           </el-button>
         </td>
       </tr>

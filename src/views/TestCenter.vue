@@ -79,8 +79,11 @@ const getQuestions = () => {
       let response = res.data
       if (response.code === 200) {
         response.data.map((data: Question) => {
+          data.user_answer = '';
           if (data.type === 'flow') {
             data.user_answer_flow = Array(data.flows.length).fill('');
+          }else if(data.type === 'proof'){
+            data.file_list = []
           }
         })
         Questions.value = response.data
@@ -103,7 +106,6 @@ const getQuestions = () => {
       })
     }
   }
-  console.log(Questions.value);
 
 }
 
@@ -152,7 +154,6 @@ const handleRemove = (file: UploadFile, file_list: any[]) => {
         f.name === file.name
         return f.name === file.name
       }); // 查找文件名对应的索引
-      console.log(index);
       if (index !== -1) {
         file_list.splice(index, 1); // 删除该文件
       }
@@ -184,6 +185,7 @@ const postExam = () => {
       question_id: question.id,
       user_answer: JSON.stringify(userAnswer)
     })
+    console.log(userAnswers)
   })
   proxy?.$http.post("/user_answers", {
     exam_id: route.query.exam_id,
@@ -251,7 +253,6 @@ const startCountDown = () => {
     if (TimeLeft.value > 0) {
       TimeLeft.value--;
       TimeLeftString.value = updateTime(TimeLeft.value)
-      console.log(TimeLeftString.value)
     } else {
       if (timer !== null) {
         clearInterval(timer)
