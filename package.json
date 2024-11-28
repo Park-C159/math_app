@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@types/axios": "^0.9.36",
+    "@types/marked": "^5.0.2",
     "axios": "^1.7.7",
     "datjs": "^0.0.1",
     "dayjs": "^1.11.13",

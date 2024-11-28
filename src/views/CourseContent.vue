@@ -6,6 +6,8 @@ import {marked} from 'marked';
 import MathTextRenderer from "@/components/MathTextRenderer.vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {Delete, Plus, ZoomIn} from "@element-plus/icons-vue";  // 用于解析Markdown内容
+import katex from "katex";
+import 'katex/dist/katex.min.css';
 
 interface Option {
   option_id: number;
@@ -114,6 +116,7 @@ const getContent = async () => {
         video_link: course.video_link,
       };
       markdownContent.value = marked(course.content);
+      renderedContent()
     }
   } catch (error) {
     console.error('Error fetching course content:', error);
@@ -148,6 +151,16 @@ const formatAndParseAnswer = (answer: string) => {
     console.error('JSON 解析错误:', error)
     return null
   }
+}
+
+// 解析和渲染 Markdown 内容
+const renderedContent =() => {
+  let htmlContent = marked(markdownContent.value);
+
+  markdownContent.value = htmlContent.replace(/\$\$([\s\S]+?)\$\$/g, (match, p1) => {
+    return `<span class="katex">${katex.renderToString(p1)}</span>`;
+  });
+
 }
 
 // 获取题目
