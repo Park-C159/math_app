@@ -140,16 +140,24 @@
         <el-button @click="isPosition = false">取消</el-button>
       </el-form-item>
     </el-form>
-    <el-cascader
-        v-else
-        v-model="value"
-        :options="options"
-        :props="cascaderProps"
-        @change="handleChange"
-    />
-<!--    <span slot="footer" class="dialog-footer">-->
-<!--      <el-button type="primary" @click="uploadQuestion">上传</el-button>-->
-<!--    </span>-->
+    <el-form v-else>
+      <el-form-item label="课程">
+        <el-cascader
+            v-model="value"
+            :options="options"
+            :props="cascaderProps"
+            @change="handleChange"
+        />
+
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="uploadQuestion">上传</el-button>
+        <el-button @click="isPosition = false">取消</el-button>
+      </el-form-item>
+
+    </el-form>
+    <!--    <span slot="footer" class="dialog-footer">-->
+    <!--    </span>-->
   </el-dialog>
 </template>
 
@@ -218,34 +226,65 @@ export default {
     }
   },
   methods: {
-    uploadExam(){
+    uploadQuestion() {
+      // 获取选中的课程ID
+      let course_id = this.value[this.value.length - 1];
+      // 将题目数据转换为JSON字符串
+      let formData = JSON.stringify(this.questions);
+
+      this.$http.post("/question",{
+        course_id: course_id,
+        questions: this.questions,
+      }).then((res) => {
+        console.log(res);
+      })
+
+      // 发送PUT请求
+      // this.$http.put("/question", {
+      //   course_id: course_id, // 作为请求体中的参数
+      //   test_info: JSON.stringify({
+      //     test_title: this.pageInfo.title,
+      //     test_course: this.courseValue
+      //   }),
+      //   format_data: formData    // JSON格式化后的题目数据
+      // }).then(response => {
+      //   console.log('上传成功:', response);
+      //   this.$message.success('题目上传成功！');
+      // }).catch(error => {
+      //   console.error('上传失败:', error);
+      //   this.$message.error('题目上传失败！');
+      // });
+      this.isPosition = false;
+    },
+    uploadExam() {
       this.$http.post("exams", {
         exam: this.exam,
         questions: this.questions,
-      }).then(res=>{
+      }).then(res => {
         let response = res.data
-        if(response.code === 200){
+        if (response.code === 200) {
           this.$message.success(response.msg);
-          this.isShow = false;
+          this.isPosition = false;
 
-        }else{
+        } else {
           this.$message.warning(response.msg)
         }
 
-      }).catch(err=>{
+      }).catch(err => {
         this.$message.error(err.message);
         console.log(err);
       })
     },
     async getCourseList() {
-      this.$http.get("course_management").then((response) => {
+      this.$http.get("/course_management").then((response) => {
         this.exam.courses = response.data;
       })
     },
     async getCourseName() {
       await this.$http.get('/get_course_name').then(res => {
-        this.courseNameList = res.data
-        res.data.map(value => {
+        this.courseNameList = []
+        res.data.data.map(value => {
+          this.courseNameList.push(value.name)
           this.courseOptions.push({
             value: value,
             label: value
@@ -315,31 +354,9 @@ export default {
     handleChange() {
       // console.log(this.value);
     },
-    uploadQuestion() {
-      // 获取选中的课程ID
-      let course_id = this.value[this.value.length - 1];
-      // 将题目数据转换为JSON字符串
-      let formData = JSON.stringify(this.questions);
-
-      // 发送PUT请求
-      this.$http.put("/question", {
-        course_id: course_id, // 作为请求体中的参数
-        test_info: JSON.stringify({
-          test_title: this.pageInfo.title,
-          test_course: this.courseValue
-        }),
-        format_data: formData    // JSON格式化后的题目数据
-      }).then(response => {
-        console.log('上传成功:', response);
-        this.$message.success('题目上传成功！');
-      }).catch(error => {
-        console.error('上传失败:', error);
-        this.$message.error('题目上传失败！');
-      });
-      this.isPosition = false;
-    },
     async getCourse() {
       await this.getCourseName();
+      console.log(this.courseNameList)
 
       // 应该将courseNameList数组来进行遍历，留有接口
       for (let courseName of this.courseNameList) {
