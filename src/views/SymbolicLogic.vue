@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CourseStruct from "@/components/CourseStruct.vue";
 import DiscussContent from "@/components/DiscussContent.vue";
-import {ref, getCurrentInstance, onMounted} from 'vue';
+import {ref, getCurrentInstance, onMounted, watch} from 'vue';
 import {UserFilled, Calendar, Location, Document, Setting} from '@element-plus/icons-vue';
 import {useRoute, useRouter} from "vue-router";
 
@@ -12,6 +12,7 @@ const proxy = instance?.proxy;  // 通过可选链操作符来处理 null 的情
 const route = useRoute()
 const router = useRouter()
 
+const CourseId = ref(route.query.courseId)
 const isExpanded = ref(false);
 let ContentID = ref(1);
 const CourseInfo = ref({
@@ -37,7 +38,6 @@ const getCourseInfo = () => {
       end_time: res.data.end_time,
       intro: res.data.intro
     };
-    // console.log(CourseInfo.value);
   }).catch((err) => {
     console.error(err);
   })
@@ -81,12 +81,17 @@ const downloadBook = async () => {
 };
 
 const testCenter = () => {
-  router.push(`/test_list?course_id=${1}`); // 获取头部需要更改
-  // window.open(`${window.location.origin}/test_center?course_name=${route.query.courseName}`, '_blank')
+  router.push(`/test_list?course_id=${CourseId.value}`); // 获取头部需要更改
 }
 
 onMounted(() => {
-  getCourseInfo()
+  getCourseInfo();
+})
+
+// 监听路由变化
+watch(() => route.query.courseId, (newCourseId) => {
+  CourseId.value = newCourseId
+  getCourseInfo()  // 路由参数变化时重新调用获取课程信息的函数
 })
 </script>
 
