@@ -4,6 +4,7 @@ CREATE DATABASE math;
 
 USE math;
 
+DROP TABLE IF EXISTS course_question;
 DROP TABLE IF EXISTS course_user;
 DROP TABLE IF EXISTS exams_question;
 DROP TABLE IF EXISTS user_answer;
@@ -124,10 +125,8 @@ CREATE TABLE exams_question (
 -- 将题目插入到考试中
 INSERT INTO exams_question (exam_id, question_id)
 VALUES
-(2, 1),  -- 将选择题插入期中考试
-(2, 2),  -- 将填空题插入期中考试
-(2, 3),  -- 将证明题插入期末考试
-(2, 4);  -- 将流程题插入期末考试
+(2, 3),
+(2, 4);
 
 DROP TABLE IF EXISTS users;
 
@@ -152,7 +151,7 @@ CREATE TABLE user_answer (
     question_id INT NOT NULL,            -- 题目ID
     user_answer TEXT NOT NULL,           -- 用户的答案
     is_correct BOOLEAN DEFAULT(NULL),    -- 答案是否正确
-    score INT DEFAULT 0,
+    score INT DEFAULT -1,
     answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 做题时间
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE,
@@ -176,7 +175,6 @@ CREATE TABLE course_user (
 
 INSERT INTO course_user (course_id, user_id) VALUES(1,1),(1,2),(1,3);
 
-
 DROP TABLE IF EXISTS course_content;
 
 CREATE TABLE course_content (
@@ -188,8 +186,6 @@ CREATE TABLE course_content (
     content TEXT,                     -- 学习内容描述
     video_link VARCHAR(255)                    -- 相关视频链接
 );
-INSERT INTO course_content(chapter_title, section_title, course_name)
-VALUES('数理逻辑', '期末考试', '考试'),('数理逻辑', '期中考试', '考试'),('可计算', '期中考试', '考试'),('可计算', '期末考试', '考试');
 
 INSERT INTO course_content (chapter_title, course_name, section_title, planned_hours, content, video_link)
 VALUES
@@ -221,6 +217,24 @@ VALUES
 
 -- 第八章 选择公理和基数
 ('第八章 选择公理和基数', '数理逻辑', NULL, 4, '基数的概念，体现集合的元素个数。选择公理几乎存在于所有现有数学中，等价于任何集合可良序。', NULL);
+
+
+-- CREATE TABLE IF EXISTS course_question;
+
+CREATE TABLE course_question(
+    course_id INT NOT NULL,
+    question_id INT NOT NULL,
+    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE,  -- 外键，删除题目时级联删除选项
+    FOREIGN KEY (course_id) REFERENCES course_content(id) ON DELETE CASCADE  -- 外键，删除题目时级联删除选项
+);
+
+INSERT INTO course_question (course_id, question_id)
+VALUES
+(1, 1),
+(1, 2);
+
+
+
 
 DROP TABLE IF EXISTS options;
 DROP TABLE IF EXISTS flows;
