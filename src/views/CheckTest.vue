@@ -11,7 +11,6 @@ const route = useRoute()
 const instance = getCurrentInstance()
 const proxy = instance?.proxy
 
-
 interface QuestionOption {
   id: number;
   option_label: string;
@@ -68,6 +67,11 @@ const userList = ref<UserInfo[]>([]);
 const userIndex = ref(0)
 const currentUser = ref<UserInfo>(userList.value[userIndex.value]);
 const loading = ref(false)
+
+const isDrawing = ref(false);    // 是否正在绘制
+const lastX = ref(0);            // 上次鼠标位置 X
+const lastY = ref(0);            // 上次鼠标位置 Y
+const currentFile = ref<any>(null);   // 当前选中的文件
 
 // 统一的字符串格式化和解析函数
 const formatAndParseAnswer = (answer: string) => {
@@ -154,16 +158,109 @@ const getQuestions = (user_id: number) => {
       Questions.value = question
     }
   })
-  setTimeout(()=>{
+  setTimeout(() => {
     loading.value = false
   }, 500)
 
 }
 
-const handlePictureCardPreview = (file: UploadFile) => {
+// 设置 canvas 背景和绘图工具
+const setupCanvas = () => {
+  const canvas = document.querySelector('canvas')!;
+  const ctx = canvas.getContext('2d')!;
+  const img = new Image();
+  img.src = dialogImageUrl.value;
+
+  // 设置跨域请求为 'anonymous'
+  img.crossOrigin = 'anonymous';
+
+  img.onload = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空画布
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // 绘制图片到画布
+  };
+
+  ctx.strokeStyle = 'red'
+
+  // 监听鼠标事件进行绘制
+  canvas.onmousedown = (e) => {
+    isDrawing.value = true;
+    lastX.value = e.offsetX;
+    lastY.value = e.offsetY;
+  };
+
+  canvas.onmousemove = (e) => {
+    if (isDrawing.value) {
+      ctx.beginPath();
+      ctx.moveTo(lastX.value, lastY.value);
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+      lastX.value = e.offsetX;
+      lastY.value = e.offsetY;
+    }
+  };
+
+  canvas.onmouseup = () => {
+    isDrawing.value = false;
+  };
+
+  canvas.onmouseleave = () => {
+    isDrawing.value = false;
+  };
+};
+
+const handlePictureCardPreview = async (file: UploadFile) => {
   dialogImageUrl.value = file.url!
+  currentFile.value = file
   dialogVisible.value = true
+  setTimeout(()=>{
+    setupCanvas()
+  }, 500)
 }
+
+// 保存绘制的内容
+const saveDrawing = () => {
+  const canvas = document.querySelector('canvas')!;
+  const dataUrl = canvas.toDataURL('image/png'); // 获取绘制后的图片数据
+  uploadToBackend(dataUrl); // 上传到后端
+  dialogVisible.value = false; // 关闭对话框
+};
+
+// 清除绘制内容
+const clearDrawing = () => {
+  const canvas = document.querySelector('canvas')!;
+  const ctx = canvas.getContext('2d')!;
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除内容
+  setupCanvas(); // 重新加载背景图片
+};
+
+// 将绘制后的图片上传到后端
+const uploadToBackend = (imageData: string) => {
+  // console.log(currentFile.value.name, '上传图片:', imageData);
+  // 假设你会通过 Axios 上传图片
+  proxy?.$http.put('/upload', {
+    image_name: currentFile.value.name,
+    image: imageData
+  }).then(res => {
+    let response = res.data;
+    if (response.code === 200) {
+      ElMessage({
+        type: 'success',
+        message: response.msg
+      })
+    }else{
+      ElMessage({
+        type: "warning",
+        message: response.msg
+      })
+    }
+  }).catch(err=>{
+    console.error(err)
+    ElMessage({
+      type: 'error',
+      message: "服务器开小差了，请联系管理员！"
+    })
+  })
+};
 
 const getUserList = async () => {
   let course_id = route.query.course_id
@@ -261,7 +358,6 @@ const finishCheck = () => {
         cancelButtonText: "否",
         type: "warning",
       }
-
   ).then(() => {
     proxy?.$http.put("/exams", {
       exam_id: route.query.exam_id,
@@ -272,10 +368,10 @@ const finishCheck = () => {
           type: 'success',
           message: response.msg
         })
-        setTimeout(()=>{
+        setTimeout(() => {
           window.close()
         }, 3000)
-      }else{
+      } else {
         ElMessage({
           type: 'warning',
           message: response.msg
@@ -288,7 +384,7 @@ const finishCheck = () => {
         message: "系统错误，请联系管理员！",
       })
     })
-  }).catch(()=>{
+  }).catch(() => {
     ElMessage({
       type: 'info',
       message: "未完成阅卷！"
@@ -406,7 +502,13 @@ onMounted(async () => {
               </template>
             </el-upload>
             <el-dialog v-model="dialogVisible">
-              <img w-full :src="dialogImageUrl" alt="Preview Image"/>
+              <div>
+                <canvas ref="canvas" width="500" height="500" style="border: 1px solid #ccc;"></canvas>
+              </div>
+              <div>
+                <el-button @click="saveDrawing">保存</el-button>
+                <el-button @click="clearDrawing">清除笔迹</el-button>
+              </div>
             </el-dialog>
           </div>
 
