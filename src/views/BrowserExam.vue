@@ -93,7 +93,7 @@ const getQuestions = () => {
         let fileList = null
         let userAnswerFlow = null
         let correctAnswer: string | string[] = data.correct_answer
-        console.log(data)
+        TotalScore.value += data.user_answer.score
 
         if (data.user_answer) {
           data.user_answer.user_id = UserInfo.value?.id as number
@@ -179,7 +179,6 @@ const handlePictureCardPreview = (file: UploadFile) => {
   dialogImageUrl.value = file.url!
   dialogVisible.value = true
 }
-
 
 onMounted(() => {
   let userInfo = localStorage.getItem('userInfo')
@@ -284,7 +283,7 @@ onMounted(() => {
             </template>
           </el-upload>
           <el-dialog v-model="dialogVisible">
-            <img w-full :src="dialogImageUrl" alt="Preview Image"/>
+            <img class="full-image" :src="dialogImageUrl" alt="Preview Image"/>
           </el-dialog>
         </div>
 
@@ -311,6 +310,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.full-image{
+  width: 100%;
+}
 #container {
   max-width: 1000px;
   margin: 0 auto
