@@ -50,17 +50,17 @@ npm run build
 | `content`        | TEXT              | 学习内容描述     |
 | `video_link`     | VARCHAR(255)      | 相关视频链接     |
 
-### 2. `questions` 表
-存储各类问题的基本信息，包括题目内容、类型和正确答案。
+### 2. `question` 表
+该表用于存储所有的题目信息，包括选择题、填空题、证明题、流程题等不同类型的题目。
 
-| 列名             | 数据类型                 | 描述                   |
-| ---------------- | ------------------------ | ---------------------- |
-| `id`             | INT                      | 主键，自增 ID           |
-| `course_id`      | INT                      | 所属课程 ID            |
-| `question_type`  | ENUM('choice', 'blank', 'proof', 'flow') | 题目类型 |
-| `question_text`  | TEXT                     | 题干内容               |
-| `correct_answer` | TEXT                     | 正确答案               |
-| `created_at`     | TIMESTAMP                | 创建时间               |
+| 列名              | 数据类型                          | 描述                                       |
+| ----------------- | --------------------------------- | ------------------------------------------ |
+| `id`              | INT                               | 主键，自增 ID                               |
+| `type`            | ENUM('choice','blank','proof','flow') | 题目类型（选择题、填空题、证明题、流程题） |
+| `question_text`   | TEXT                              | 题目内容                                   |
+| `score`           | FLOAT                             | 题目分数                                   |
+| `correct_answer`  | TEXT                              | 正确答案                                   |
+| `created_at`      | TIMESTAMP                         | 创建时间，默认为当前时间                   |
 
 ### 3. `options` 表
 存储选择题的选项内容，与 `questions` 表建立外键关联。
@@ -120,6 +120,15 @@ npm run build
 | `role`           | ENUM('admin', 'teacher', 'student') | 用户角色 |
 | `extra`          | TEXT              | 额外信息                 |
 
+### 8. `course_question` 表
+该表用于存储课程与题目的关系，即每个课程可以有多个题目，关联 `course_id` 和 `question_id`。
+
+| 列名           | 数据类型   | 描述                       |
+| -------------- | ---------- | -------------------------- |
+| `course_id`    | INT        | 关联的课程 ID               |
+| `question_id`  | INT        | 关联的题目 ID               |
+
+---
 
 ## 接口说明
 
