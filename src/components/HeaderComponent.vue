@@ -3,17 +3,38 @@
 import {RouterLink} from "vue-router";
 import {ref, getCurrentInstance, onMounted} from 'vue'
 import router from "@/router";
+import {ElMessage} from "element-plus";
 // 获取 Vue 实例
 const instance = getCurrentInstance();
 const proxy = instance?.proxy;  // 通过可选链操作符来处理 null 的情况
+
+interface Course {
+  "id": number;
+  "name": string;
+}
+
 const courseNameList = ref<string[]>([]);
+const courseList = ref<Course[]>([])
 
 
 const getCourseName = () => {
   proxy?.$http.get('/get_course_name').then((res) => {
-    courseNameList.value.length = 0;
-    courseNameList.value.push(...res.data)
+    let response = res.data;
+    if(response.code === 200){
+      courseList.value = response.data;
+    }else{
+      ElMessage({
+        type: 'error',
+        message: response.msg
+      })
+    }
+    // courseNameList.value.length = 0;
+    // courseNameList.value.push(...res.data)
   }).catch((err) => {
+    ElMessage({
+      type: 'error',
+      message: "服务其开小差了，请联系管理员！"
+    })
     console.log(err)
   })
 }
@@ -46,13 +67,15 @@ const logout = () => {
   localStorage.removeItem('isLogin');
   location.reload()
 }
-const toCourse = (courseName: string) => {
-  console.log(courseName);
+const toCourse = (courseName: string, courseId: number) => {
   // 使用 router.push 跳转到目标路由，并将 courseName 作为查询参数传递
   router.push({
     path: '/symbolic',
-    query: {courseName}
+    query: {
+      courseName, courseId
+    }
   });
+  // window.location.reload();
 }
 
 onMounted(() => {
@@ -107,18 +130,18 @@ onMounted(() => {
             Home
           </el-menu-item>
           <el-menu-item
-              v-for="(courseName, index) in courseNameList"
+              v-for="(course, index) in courseList"
               :key="index"
               :index="index+2"
-              @click="toCourse(courseName)"
+              @click="toCourse(course.name, course.id)"
           >
-            {{ courseName }}
+            {{ course.name }}
           </el-menu-item>
           <!--          <el-menu-item index="2" @click="$router.push('/symbolic')">数理逻辑</el-menu-item>-->
           <!--          <el-menu-item index="3" @click="$router.push('/comtheory')">可计算性与计算复杂性</el-menu-item>-->
-          <el-menu-item index="10" v-if="userLevel!='student' && userLevel!=null"
-                        @click="$router.push('/test_management')">考试
-          </el-menu-item>
+<!--          <el-menu-item index="10" v-if="userLevel!='student' && userLevel!=null"-->
+<!--                        @click="$router.push('/test_management')">考试-->
+<!--          </el-menu-item>-->
           <el-menu-item index="11" @click="$router.push('/toolbox')">工具箱</el-menu-item>
         </el-menu>
 
