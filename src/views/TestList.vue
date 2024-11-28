@@ -69,6 +69,9 @@ const toBrowserExam = (exam_id: number, exam_name: string) => {
 const toCheckCenter = (exam_id: number, exam_name: string) => {
   window.open(`${window.location.origin}/check_test?exam_id=${exam_id}&exam_name=${exam_name}&course_id=${route.query.course_id}`, '_blank')
 }
+const toMarkCenter = (exam_id: number, exam_name: string) => {
+  window.open(`${window.location.origin}/mark_center?exam_id=${exam_id}&exam_name=${exam_name}&course_id=${route.query.course_id}`, '_blank')
+}
 const deleteExam = (exam_id: number) => {
   proxy?.$http.delete("exams",{
     params: {
@@ -153,6 +156,16 @@ onMounted(() => {
 
           >
             阅卷中心
+          </el-button>
+          <el-button
+              type="primary"
+              link
+              :disabled="UserInfo?.role==='student'"
+              v-if="userLevel!='student' && userLevel!='' && userLevel!=null"
+              @click="toMarkCenter(exam.id, exam.name)"
+
+          >
+            成绩中心
           </el-button>
           <el-button
               type="primary"

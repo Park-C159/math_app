@@ -15,6 +15,7 @@ import TestCenter from "@/views/TestCenter.vue";
 import CheckTest from "@/views/CheckTest.vue";
 import TestList from "@/views/TestList.vue";
 import BrowserExam from "@/views/BrowserExam.vue";
+import MarkCenter from "@/views/MarkCenter.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,6 +28,10 @@ const router = createRouter({
       path: '/truth',
       name: 'truth',
       component: TruthTable
+    },{
+      path: '/mark_center',
+      name: 'mark_center',
+      component: MarkCenter
     },{
       path: '/comtheory',
       name: 'comtheory',
