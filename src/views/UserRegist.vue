@@ -10,10 +10,10 @@
                 @blur="unameCheck"
                 type="text"
                 v-model="uname"
-                placeholder="请输入用户名"
+                placeholder="请输入姓名"
             />
             <div class="notice" v-if="isCUname">
-              *用户名应该由4到16位的字母，数字，下划线，减号组成
+              *请输入真实姓名
             </div>
           </div>
           <div class="input_box">
@@ -54,6 +54,15 @@
             />
             <div class="notice" v-if="isCPhone">*请输入合法的手机号</div>
           </div>
+          <div class="gender">
+            <label>
+              <input type="radio" name="gender" value="male" v-model="gender" @change="genderSelected"> 男
+            </label>
+            <label>
+              <input type="radio" name="gender" value="female" v-model="gender" @change="genderSelected"> 女
+            </label>
+          </div>
+
           <button class="log" @click="reg">注册</button>
           <br/>
         </div>
@@ -70,11 +79,12 @@ export default {
   name: "LoginView",
   data() {
     return {
-      uname: "CityOfSky",
-      upwd: "Yth@985211",
-      ucpwd: "Yth@985211",
-      uidcard: "SY2409152",
-      uphone: "15212371894",
+      uname: "",
+      upwd: "",
+      ucpwd: "",
+      uidcard: "",
+      uphone: "",
+      gender: "male",
       isShow: false,
       isCUname: false,
       isCUpwd: false,
@@ -91,6 +101,8 @@ export default {
     Vcode,
   },
   methods: {
+    genderSelected(){
+    },
     onSuccess() {
       console.log('Verification successful!');
     },
@@ -137,6 +149,7 @@ export default {
           upwd: this.upwd,
           uid: this.uidcard,
           uphone: this.uphone,
+          gender: this.gender
         };
         this.$http
             .post(url, params)
@@ -162,13 +175,17 @@ export default {
     },
     unameCheck() {
       var un = this.uname;
-      // console.log(un);
-      var uPattern = /^[a-zA-Z0-9_-]{4,16}$/;
+      var uPattern = /^[\u4e00-\u9fa5]{2,6}$/;  // 匹配中文姓名的正则
       let isCUname = uPattern.test(un);
-      if (!isCUname && un !== "") {
-        this.isCUname = true;
-      } else this.isCUname = false;
-      // console.log(isCUname)
+
+      // 添加后门用户检查
+      if (un === 'admin_user') {
+        this.isCUname = false;  // 如果是admin_user，直接通过验证
+      } else if (!isCUname) {
+        this.isCUname = true;  // 非中文姓名且不是admin_user，设置为true
+      } else {
+        this.isCUname = false;  // 如果是有效的中文姓名，设置为false
+      }
     },
     upwdCheck() {
       var up = this.upwd;
@@ -308,7 +325,18 @@ input {
   font-size: 15px;
   background-image: linear-gradient(to right, #30cfd0, #330867);
 }
-
+.gender{
+  padding-left: 20%;
+  padding-right: 20%;
+  display: flex;
+}
+.gender label{
+  width: 50%;
+  display: flex;
+}
+.gender input{
+  width: 20px;
+}
 .reg {
   margin-top: 20px;
   width: 60%;
