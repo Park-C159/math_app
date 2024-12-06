@@ -137,6 +137,7 @@ CREATE TABLE users (
     user_id VARCHAR(50),
     phone_number VARCHAR(15),
     role ENUM('admin', 'teacher', 'student') NOT NULL,
+    gender TINYINT,
     extra TEXT
 );
 

