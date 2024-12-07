@@ -174,7 +174,7 @@ CREATE TABLE course_user (
     PRIMARY KEY (user_id, course_id)
 );
 
-INSERT INTO course_user (course_id, user_id) VALUES(1,1),(1,2),(1,3);
+INSERT INTO course_user (course_id, user_id) VALUES(1,1);
 
 DROP TABLE IF EXISTS course_content;
 
