@@ -141,10 +141,30 @@ CREATE TABLE users (
     extra TEXT
 );
 
-INSERT INTO users (username, password, user_id, phone_number, role, extra) VALUES
-('admin_user', 'Admin@123', 'A0001', '12345678901', 'admin', ''),
-('teacher_user', 'hashed_password_2', 'T0001', '23456789012', 'teacher', ''),
-('student_user', 'hashed_password_3', 'SY00000000', '34567890123', 'student', '');
+INSERT INTO users (username, password, user_id, phone_number, role, extra)
+VALUES ('admin_user', 'Admin@123', 'A0001', '12345678901', 'admin', ''),
+       ('teacher_user', 'hashed_password_2', 'T0001', '23456789012', 'teacher', ''),
+       ('student_user', 'hashed_password_3', 'SY00000000', '34567890123', 'student', ''),
+       ('student1', 'password123', '2021001', '13800001001', 'student', NULL),
+       ('student2', 'password123', '2021002', '13800001002', 'student', NULL),
+       ('student3', 'password123', '2021003', '13800001003', 'student', NULL),
+       ('student4', 'password123', '2021004', '13800001004', 'student', NULL),
+       ('student5', 'password123', '2021005', '13800001005', 'student', NULL),
+       ('student6', 'password123', '2021006', '13800001006', 'student', NULL),
+       ('student7', 'password123', '2021007', '13800001007', 'student', NULL),
+       ('student8', 'password123', '2021008', '13800001008', 'student', NULL),
+       ('student9', 'password123', '2021009', '13800001009', 'student', NULL),
+       ('student10', 'password123', '2021010', '13800001010', 'student', NULL),
+       ('student11', 'password123', '2021011', '13800001011', 'student', NULL),
+       ('student12', 'password123', '2021012', '13800001012', 'student', NULL),
+       ('student13', 'password123', '2021013', '13800001013', 'student', NULL),
+       ('student14', 'password123', '2021014', '13800001014', 'student', NULL),
+       ('student15', 'password123', '2021015', '13800001015', 'student', NULL),
+       ('student16', 'password123', '2021016', '13800001016', 'student', NULL),
+       ('student17', 'password123', '2021017', '13800001017', 'student', NULL),
+       ('student18', 'password123', '2021018', '13800001018', 'student', NULL),
+       ('student19', 'password123', '2021019', '13800001019', 'student', NULL),
+       ('student20', 'password123', '2021020', '13800001020', 'student', NULL);
 
 -- 创建 user_answer 表，设置 user_id 和 question_id 为联合主键
 CREATE TABLE user_answer (
@@ -308,86 +328,95 @@ DROP TABLE IF EXISTS replies;
 
 DROP TABLE IF EXISTS discussions;
 -- 创建 discussions 表
-CREATE TABLE discussions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    course_name VARCHAR(255) NOT NULL,
-    author VARCHAR(255) NOT NULL,       -- 发布者
-    content TEXT NOT NULL,              -- 讨论内容
-    score BIGINT, -- 的分数
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 发布时间
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP  -- 更新时间
+CREATE TABLE discussions
+(
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    course_id  INT  NOT NULL,
+    author_id  INT  NOT NULL,
+    `like`     INT       DEFAULT 0,
+    content    TEXT NOT NULL,
+    is_deleted BOOLEAN   DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (course_id) REFERENCES course (id),
+    FOREIGN KEY (author_id) REFERENCES users (id),
+
+    INDEX idx_course_id (course_id),
+    INDEX idx_author_id (author_id),
+    INDEX idx_is_deleted (is_deleted)
 );
+INSERT INTO discussions (course_id, author_id, `like`, content, is_deleted)
+VALUES (1, (SELECT id FROM users WHERE username = 'student1'), 0, '这门课程的内容很有趣，希望能学到很多知识。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student2'), 0, '老师讲课非常清晰，对知识点的解释很透彻。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student3'), 0, '课程作业有点难度，但是很有挑战性。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student4'), 0, '希望能有更多的实践机会，理论知识太多了。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student5'), 0, '对这门课程的内容很感兴趣，期待学习更多。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student6'), 0, '课程进度有点快，需要花很多时间消化知识。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student7'), 0, '学习资料很丰富，对理解课程内容很有帮助。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student8'), 0, '老师很有耐心，对学生的问题都能给出详细解答。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student9'), 0, '小组作业让我们能够互相学习，很有收获。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student10'), 0, '希望能有更多的课堂互动和讨论。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student11'), 0, '课程内容很有深度，对专业知识的理解帮助很大。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student12'), 0, '课堂氛围很好，大家都很积极参与。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student13'), 0, '对这门课程的一些概念还不太理解，需要再深入学习。',
+        FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student14'), 0, '老师的教学方法很独特，让学习变得有趣。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student15'), 0, '希望能有更多的实验课和实践机会。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student16'), 0, '课程资源很丰富，对自学很有帮助。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student17'), 0, '对课程内容的深度和广度都很满意。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student18'), 0, '老师很注重培养学生的批判性思维。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student19'), 0, '课程作业设计很有创意，能让我们多思考。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student20'), 0, '希望能有更多的跨学科视角和案例分析。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student1'), 0, '第二次发言：对课程的理解越来越深入了。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student2'), 0, '再次感谢老师的耐心指导。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student3'), 0, '课程的理论基础很扎实。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student4'), 0, '对课程内容有了更多的思考和感悟。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student5'), 0, '越来越喜欢这门课程了。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student6'), 0, '学习过程很充实，收获很多。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student7'), 0, '对专业知识有了更深入的理解。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student8'), 0, '课程给了我很大的启发。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student9'), 0, '期待未来能继续学习相关内容。', FALSE),
+       (1, (SELECT id FROM users WHERE username = 'student10'), 0, '对课程的要求和期望有了更清晰的认识。', FALSE);
 
--- 创建 replies 表
-CREATE TABLE replies (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    discussion_id INT NOT NULL,         -- 关联的讨论ID
-    replier VARCHAR(255) NOT NULL,      -- 回复者
-    score BIGINT, -- 的分数
-    reply_content TEXT NOT NULL,        -- 回复内容
-    reply_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 回复时间
-    FOREIGN KEY (discussion_id) REFERENCES discussions(id) ON DELETE CASCADE  -- 外键，删除讨论时级联删除回复
+CREATE TABLE replies
+(
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    discussion_id INT  NOT NULL,
+    replier_id    INT  NOT NULL,
+    `like`        INT       DEFAULT 0,
+    reply_content TEXT NOT NULL,
+    is_deleted    BOOLEAN   DEFAULT FALSE,
+    reply_time    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (discussion_id) REFERENCES discussions (id) ON DELETE CASCADE,
+    FOREIGN KEY (replier_id) REFERENCES users (id),
+
+    INDEX idx_discussion_id (discussion_id),
+    INDEX idx_replier_id (replier_id),
+    INDEX idx_is_deleted (is_deleted)
 );
+INSERT INTO replies (discussion_id, replier_id, `like`, reply_content, is_deleted)
+VALUES
+-- 第1条讨论的回复
+(1, (SELECT id FROM users WHERE username = 'student2'), 0, '非常赞同你的观点，学习心得很有价值', 0),
+(1, (SELECT id FROM users WHERE username = 'student3'), 0, '对学习方法很感兴趣，可以分享更多细节吗？', 0),
 
--- 插入 20 条讨论
-INSERT INTO discussions (course_name, author, content) VALUES
-('数理逻辑', '张三', '数理逻辑的基本定义与应用是什么？'),
-('数理逻辑', '李四', '请问在数理逻辑中如何证明一个命题的真实性？'),
-('数理逻辑', '王五', '数理逻辑的推理能力有多强？'),
-('数理逻辑', '赵六', '数理逻辑与集合论的关系是什么？'),
-('数理逻辑', '孙七', '请解释数理逻辑的基本原理。'),
-('数理逻辑', '周八', '在数理逻辑中，公理系统的意义是什么？'),
-('数理逻辑', '吴九', '数理逻辑在计算机科学中的应用有哪些？'),
-('数理逻辑', '郑十', '数理逻辑的发展历史是怎样的？'),
-('数理逻辑', '黄一', '数理逻辑中常用的推理规则有哪些？'),
-('数理逻辑', '刘二', '在数理逻辑中，如何构建一个有效的推理系统？'),
-('数理逻辑', '陈三', '数理逻辑中的归纳法和演绎法有什么区别？'),
-('数理逻辑', '章四', '如何在数理逻辑中进行公理化系统的构建？'),
-('数理逻辑', '赵五', '数理逻辑中的范式转换是如何进行的？'),
-('数理逻辑', '钱六', '数理逻辑在哲学中的作用是什么？'),
-('数理逻辑', '孙七', '数理逻辑的核心概念有哪些？'),
-('数理逻辑', '李八', '数理逻辑中的逻辑演算是如何实现的？'),
-('数理逻辑', '吴九', '数理逻辑的完备性和一致性如何定义？'),
-('数理逻辑', '陈十', '数理逻辑在数学中的重要性是什么？'),
-('数理逻辑', '郑十一', '数理逻辑的模型理论是如何发展的？'),
-('数理逻辑', '黄十二', '数理逻辑中的谓词逻辑和命题逻辑有何不同？');
+-- 第2条讨论的回复
+(2, (SELECT id FROM users WHERE username = 'student5'), 0, '我也有同样的疑问，希望老师能解答', 0),
+(2, (SELECT id FROM users WHERE username = 'student7'), 0, '建议可以查阅一下课程参考资料', 0),
 
--- 为每条讨论插入 5 条回复
-INSERT INTO replies (discussion_id, replier, reply_content) VALUES
-(3, '李四', '数理逻辑可以用来推理复杂的逻辑关系。'),
-(3, '张三', '我认为数理逻辑的推理能力是非常强的。'),
-(3, '王五', '数理逻辑是推理数学问题的基础。'),
-(3, '孙七', '数理逻辑在计算机科学中的作用不可忽视。'),
-(3, '赵六', '数理逻辑可以帮助理解集合论的基本概念。'),
+-- 第3条讨论的回复
+(3, (SELECT id FROM users WHERE username = 'student1'), 0, '确实，这门课程很有意思！', 0),
+(3, (SELECT id FROM users WHERE username = 'student4'), 0, '我也学到了很多新知识', 0),
 
-(4, '李四', '数理逻辑和集合论都是数学的基础理论。'),
-(4, '张三', '数理逻辑在集合论中有很大的应用。'),
-(4, '王五', '数理逻辑是集合论的逻辑基础。'),
-(4, '孙七', '在数理逻辑中，集合论是一个重要的研究方向。'),
-(4, '赵六', '集合论和数理逻辑是相辅相成的。'),
-
-(5, '李四', '数理逻辑的基本原理包括推理和证明。'),
-(5, '张三', '数理逻辑的原理可以用于解释复杂的数学问题。'),
-(5, '王五', '数理逻辑在计算机科学中有着重要的应用。'),
-(5, '孙七', '数理逻辑是研究逻辑推理的基本工具。'),
-(5, '赵六', '数理逻辑帮助理解数学的基本逻辑结构。'),
-
--- 以下为其余讨论的回复，类似的结构
-(6, '李四', '公理系统是数理逻辑的基础。'),
-(6, '张三', '数理逻辑中的公理系统是用来证明命题的。'),
-(6, '王五', '公理系统是数理逻辑中的重要部分。'),
-(6, '孙七', '公理系统在数理逻辑中的地位很高。'),
-(6, '赵六', '数理逻辑中的公理系统非常重要。'),
-
-(7, '李四', '数理逻辑在计算机科学中的应用非常广泛。'),
-(7, '张三', '数理逻辑是计算机科学的核心内容之一。'),
-(7, '王五', '数理逻辑可以用来设计程序。'),
-(7, '孙七', '数理逻辑在编程语言中起到重要作用。'),
-(7, '赵六', '数理逻辑帮助理解计算机科学的基础概念。');
-
--- 此处仅插入部分讨论和回复，其他讨论与回复可以以类似方式继续插入
--- 注意：要保证每个 discussion_id 对应正确的讨论
-
+-- 随机为其他讨论添加一些回复
+(4, (SELECT id FROM users WHERE username = 'student8'), 0, '进度确实有点快，需要多花些时间消化', 0),
+(5, (SELECT id FROM users WHERE username = 'student9'), 0, '关于作业要求，我有一些补充建议', 0),
+(6, (SELECT id FROM users WHERE username = 'student10'), 0, '实验课确实很有启发性', 0),
+(7, (SELECT id FROM users WHERE username = 'student11'), 0, '理论部分需要多思考和理解', 0),
+(8, (SELECT id FROM users WHERE username = 'student12'), 0, '赞同增加更多实践环节', 0),
+(9, (SELECT id FROM users WHERE username = 'student13'), 0, '资料确实很丰富', 0);
 
 CREATE TABLE user_answers (
     id INT AUTO_INCREMENT PRIMARY KEY,
