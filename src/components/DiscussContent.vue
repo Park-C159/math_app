@@ -196,6 +196,7 @@ const submitReply = async (discussionId: number, index: number) => {
 
   if (user && content) {
     try {
+      // 发送回复请求
       const response = await proxy?.$http.post("/submit_reply", {
         user_id: user.id,
         discussion_id: discussionId,
@@ -203,13 +204,24 @@ const submitReply = async (discussionId: number, index: number) => {
       });
 
       if (response?.data?.message === "回复创建成功") {
-        // 如果该讨论还没有加载回复，则先加载
-        if (!discussions.value[index].replies) {
-          discussions.value[index].replies = [];
+        // 检查是否已经加载过回复
+        const isRepliesLoaded = discussions.value[index].replies !== undefined;
+
+        // 如果没有加载过回复，则重新获取全部回复
+        if (!isRepliesLoaded) {
+          const repliesResponse = await proxy?.$http.get("/get_detailed_discussions", {
+            params: {discussion_id: discussionId}
+          });
+
+          if (repliesResponse?.data?.replies) {
+            discussions.value[index].replies = repliesResponse.data.replies;
+          }
+        } else {
+          // 如果已经加载过回复，直接追加新回复
+          discussions.value[index].replies.push(response.data.reply);
         }
 
-        // 添加新回复到前端
-        discussions.value[index].replies.push(response.data.reply);
+        // 更新回复计数和显示状态
         discussions.value[index].replies_count += 1;
         discussions.value[index].showReplies = true;
 
@@ -389,21 +401,39 @@ onMounted(() => {
             </div>
             <!-- 展示回复内容 -->
             <div v-if="discussion.showReplies" class="replies">
-              <div v-for="(reply, replyIndex) in discussion.replies" :key="replyIndex" class="reply">
-                <div class="reply-header">
-                  <!-- 用户名，贴子发布时间 -->
-                  <div class="reply-user">
-                    {{ reply.replier_name }} - {{ dayjs(reply.reply_time).format("YYYY-MM-DD") }}
+              <div
+                  v-for="(reply, replyIndex) in discussion.replies"
+                  :key="replyIndex"
+                  class="reply-container border rounded-md p-3 mb-2 bg-gray-50"
+              >
+                <div class="reply-header flex justify-between items-center">
+                  <div class="reply-user-info">
+                    <div class="discussion-avatar">
+                      <el-avatar :icon="UserFilled"/>
+                    </div>
+                    <div class="reply-user font-bold text-base">
+                      {{ reply.replier_name }}
+                    </div>
+                    <div class="reply-time text-gray-500 text-sm">
+                      {{ dayjs(reply.reply_time).format("YYYY-MM-DD") }}
+                    </div>
                   </div>
                   <!-- 点赞按钮 -->
                   <div class="reply-actions">
-                    <el-button class="like-btn" type="text" size="small" icon="Star"
-                               @click="likeDoR(reply.id, 'reply')">
+                    <el-button
+                        class="like-btn"
+                        type="text"
+                        size="small"
+                        icon="Star"
+                        @click="likeDoR(reply.id, 'reply')"
+                    >
                       <span>{{ reply.like }}</span>
                     </el-button>
                   </div>
                 </div>
-                <div class="reply-content">{{ reply.reply_content }}</div>
+                <div class="reply-content mt-2">
+                  {{ reply.reply_content }}
+                </div>
               </div>
             </div>
             <!-- 回复编辑器 -->
@@ -572,8 +602,16 @@ onMounted(() => {
   color: white;
 }
 
-.reply {
-  margin-bottom: 10px;
+.reply-container {
+  border-radius: 10px;
+  padding: 4px 4px 4px 17px;
+  border: 1px solid gray;
+  transition: background-color 0.3s ease;
+  margin-bottom: 7px;
+}
+
+.reply-user-info {
+  display: flex;
 }
 
 .reply-header {
