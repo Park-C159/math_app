@@ -13,11 +13,14 @@ const showEditor = ref<boolean>(false);  // 控制主评论编辑框显示与否
 const discussionContent = ref<string>("");  // 主评论编辑框内容
 const replyContent = ref<{ [key: number]: string }>({});  // 存储每个讨论的回复内容
 const activeReplyIndex = ref<number | null>(null);  // 控制哪个讨论显示回复编辑器
+const targetType = ref<string | null>(null);// 控制回复对象
+const targetId = ref<number | null>(null); //记录回复评论的对象ID
 const currentPage = ref<number>(1);       // 当前页码
 const totalReplies = ref<number>(0);      // 总评论数
 const perPage = ref<number>(5);           // 每页显示的评论数
 const jumpToPage = ref<number | null>(null); // 跳转页码输入
 const timeFilter = ref('all'); // 保存当前的时间筛选条件
+const authorFilter = ref('all'); // 保存当前的人物筛选条件
 
 // 获取当前用户信息
 const getUserInfo = () => {
@@ -40,6 +43,16 @@ const getUserInfo = () => {
 // 获取讨论区主评论内容
 const getDiscussContent = async (page: number = 1) => {
   try {
+    let userId = '';
+    if (authorFilter.value === 'created_by_me') {
+      const userInfo = getUserInfo();
+      if (userInfo && userInfo.id) {
+        userId = userInfo.id;
+      } else {
+        console.log("No user info found. Cannot filter by 'created_by_me'.");
+      }
+    }
+
     const response = await proxy?.$http.get("/get_main_discussions", {
       params: {
         course_name: props.courseName,
@@ -47,6 +60,8 @@ const getDiscussContent = async (page: number = 1) => {
         per_page: perPage.value,
         search: input.value, // 搜索参数
         time_filter: timeFilter.value,
+        author_filter: authorFilter.value,
+        user_id: userId
       },
     });
 
@@ -140,21 +155,20 @@ const handleCreateDiscussion = () => {
 
 
 // 处理回复按钮点击事件
-const handleReplyClick = (index: number) => {
-  const user = getUserInfo();
-  if (!user) {
-    alert("请先登录！");
+const handleReplyClick = (discussionIndex: number, target_type: string, target_id: number) => {
+  console.log(discussionIndex, target_type, target_id);
+  // 如果当前点击的是同一个回复，则取消
+  if (activeReplyIndex.value === discussionIndex) {
+    activeReplyIndex.value = null;
+    targetType.value = null;
+    targetId.value = null;
     return;
   }
 
-  if (activeReplyIndex.value === index) {
-    // 如果点击的是同一个讨论的回复按钮，则关闭编辑器
-    activeReplyIndex.value = null;
-  } else {
-    // 打开当前讨论的回复编辑器
-    activeReplyIndex.value = index;
-    replyContent.value[index] = ""; // 重置回复内容
-  }
+  // 设置当前活跃的回复索引和目标ID
+  activeReplyIndex.value = discussionIndex;
+  targetType.value = target_type;
+  targetId.value = target_id;
 };
 
 
@@ -199,8 +213,10 @@ const submitReply = async (discussionId: number, index: number) => {
       // 发送回复请求
       const response = await proxy?.$http.post("/submit_reply", {
         user_id: user.id,
-        discussion_id: discussionId,
-        content: content
+        parent_id: discussionId,
+        content: content,
+        target_type: targetType.value,
+        target_id: targetId.value
       });
 
       if (response?.data?.message === "回复创建成功") {
@@ -273,6 +289,13 @@ const handleTimeFilterClick = (filter: string) => {
 };
 
 
+// 处理人物筛选按钮点击事件
+const handleAuthorFilterClick = (filter: string) => {
+  authorFilter.value = filter; // 更新时间筛选条件
+  getDiscussContent(1); // 重新获取第一页数据
+};
+
+
 // 监听搜索框输入内容
 watch(input, (newInput) => {
   if (newInput.trim() !== "") {
@@ -323,9 +346,9 @@ onMounted(() => {
           </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item>我发布的</el-dropdown-item>
-              <el-dropdown-item>老师参与</el-dropdown-item>
-              <el-dropdown-item>恢复默认</el-dropdown-item>
+              <el-dropdown-item @click="handleAuthorFilterClick('created_by_me')">我发布的</el-dropdown-item>
+              <el-dropdown-item @click="handleAuthorFilterClick('teacher_involved')">老师参与</el-dropdown-item>
+              <el-dropdown-item @click="handleAuthorFilterClick('all')">恢复默认</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -423,15 +446,21 @@ onMounted(() => {
                     <el-button
                         class="like-btn"
                         type="text"
-                        size="small"
                         icon="Star"
-                        @click="likeDoR(reply.id, 'reply')"
+                        @click="likeDoR(index, 'discussion')"
                     >
-                      <span>{{ reply.like }}</span>
+                      <span>{{ discussion.like }}</span>
                     </el-button>
+                    <el-button
+                        class="reply-btn"
+                        style="background: transparent; margin-left: 0"
+                        icon="EditPen"
+                        @click="handleReplyClick(index, 'reply', reply.id)"
+                    />
                   </div>
                 </div>
                 <div class="reply-content mt-2">
+                  <span v-if="reply.reply_type === 'reply'" style="color: blue">@{{ reply.target_name }} </span>
                   {{ reply.reply_content }}
                 </div>
               </div>
@@ -472,7 +501,7 @@ onMounted(() => {
               class="reply-btn"
               style="background: transparent; margin-left: 0"
               icon="EditPen"
-              @click="handleReplyClick(index)"
+              @click="handleReplyClick(index, 'discussion', discussion.id)"
           />
         </div>
       </div>
