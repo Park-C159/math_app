@@ -356,8 +356,9 @@ VALUES (@question_id, 1, '假设命题 A 为真', FALSE),
 
 
 DROP TABLE IF EXISTS replies;
-
 DROP TABLE IF EXISTS discussions;
+DROP TABLE IF EXISTS user_like_comment;
+
 -- 创建 discussions 表
 CREATE TABLE discussions
 (
@@ -427,6 +428,7 @@ CREATE TABLE replies
     INDEX idx_replier_id (replier_id),
     INDEX idx_target_id (target_type)
 );
+
 INSERT INTO replies (parent_id, replier_id, target_type, target_id, reply_content)
 VALUES
 -- 第1条讨论的回复
@@ -440,6 +442,19 @@ VALUES
 -- 第3条讨论的回复
 (3, (SELECT id FROM users WHERE username = 'student1'), 'discussion', 3, '确实，这门课程很有意思！'),
 (3, (SELECT id FROM users WHERE username = 'student4'), 'reply', 5, '我也学到了很多新知识');
+
+CREATE TABLE user_like_comment
+(
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    user_id    INT                          NOT NULL,
+    dor        ENUM ('discussion', 'reply') NOT NULL,
+    comment_id INT                          NOT NULL,
+
+    UNIQUE KEY unique_like (user_id, dor, comment_id),
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_dor_comment_id (dor, comment_id)
+);
 
 CREATE TABLE user_answers
 (
