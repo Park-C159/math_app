@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, getCurrentInstance, onMounted, nextTick, watch} from "vue";
+import {ref, getCurrentInstance, onMounted, watch} from "vue";
 import {Search, UserFilled, ArrowDown, Star} from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 
@@ -7,13 +7,13 @@ import dayjs from "dayjs";
 const instance = getCurrentInstance();
 const proxy = instance?.proxy;
 const props = defineProps<{ courseName: string }>();
-const input = ref<string>("");
-const discussions = ref<any[]>([]);
+const input = ref<string>(""); // 搜索框文本
+const discussions = ref<any[]>([]); // 存储某条课程的所有主评论
 const showEditor = ref<boolean>(false);  // 控制主评论编辑框显示与否
 const discussionContent = ref<string>("");  // 主评论编辑框内容
 const replyContent = ref<{ [key: number]: string }>({});  // 存储每个讨论的回复内容
 const activeReplyIndex = ref<number | null>(null);  // 控制哪个讨论显示回复编辑器
-const targetType = ref<string | null>(null);// 控制回复对象
+const targetType = ref<string | null>(null);// 存储当前回复的回复类型
 const targetId = ref<number | null>(null); //记录回复评论的对象ID
 const currentPage = ref<number>(1);       // 当前页码
 const totalReplies = ref<number>(0);      // 总评论数
@@ -25,7 +25,7 @@ const authorFilter = ref('all'); // 保存当前的人物筛选条件
 // 获取当前用户信息
 const getUserInfo = () => {
   try {
-    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}"); // 获取并解析用户信息
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
 
     if (userInfo && userInfo.username) {
       return userInfo;
@@ -44,13 +44,11 @@ const getUserInfo = () => {
 const getDiscussContent = async (page: number = 1) => {
   try {
     let userId = '';
-    if (authorFilter.value === 'created_by_me') {
-      const userInfo = getUserInfo();
-      if (userInfo && userInfo.id) {
-        userId = userInfo.id;
-      } else {
-        console.log("No user info found. Cannot filter by 'created_by_me'.");
-      }
+    const userInfo = getUserInfo();
+    if (userInfo && userInfo.id) {
+      userId = userInfo.id;
+    } else {
+      console.log("No user info found. Cannot filter by 'created_by_me'.");
     }
 
     const response = await proxy?.$http.get("/get_main_discussions", {
@@ -58,7 +56,7 @@ const getDiscussContent = async (page: number = 1) => {
         course_name: props.courseName,
         page: page,
         per_page: perPage.value,
-        search: input.value, // 搜索参数
+        search: input.value,
         time_filter: timeFilter.value,
         author_filter: authorFilter.value,
         user_id: userId
@@ -82,6 +80,14 @@ const getDiscussContent = async (page: number = 1) => {
 // 获取某条主评论的所有子评论并进行展示
 const loadReplies = async (discussionId: number, index: number) => {
   try {
+    let userId = '';
+    const userInfo = getUserInfo();
+    if (userInfo && userInfo.id) {
+      userId = userInfo.id;
+    } else {
+      console.log("No user info found. Cannot filter by 'created_by_me'.");
+    }
+
     // 如果已经加载过回复，则切换显示状态
     if (discussions.value[index].replies) {
       discussions.value[index].showReplies = !discussions.value[index].showReplies;
@@ -90,7 +96,10 @@ const loadReplies = async (discussionId: number, index: number) => {
 
     // 发送请求获取该讨论的所有子评论
     const response = await proxy?.$http.get("/get_detailed_discussions", {
-      params: {discussion_id: discussionId},
+      params: {
+        discussion_id: discussionId,
+        user_id: userId
+      },
     });
 
     if (response?.data?.replies) {
@@ -104,7 +113,7 @@ const loadReplies = async (discussionId: number, index: number) => {
 };
 
 
-// 对主评论或者子评论进行点赞
+// 对主评论或者子评论进行点赞或取消点赞
 const likeDoR = async (id: number, type: string) => {
   const user = getUserInfo();
   if (!user) {
@@ -114,28 +123,41 @@ const likeDoR = async (id: number, type: string) => {
 
   try {
     const response = await proxy?.$http.post("/update_like", {
-      id: type === 'discussion' ? discussions.value[id].id : id, // 主评论的ID，用于更新数据库
+      id: id,
       type: type,
-      user_id: user.id
+      user_id: user.id,
     });
 
-    if (response?.data?.message === "Like updated successfully") {
-      if (type === 'discussion') {
-        discussions.value[id].like = response.data.like;
-      } else if (type === 'reply') {
+    if (
+        response?.data?.message === "Like added successfully" ||
+        response?.data?.message === "Like removed successfully"
+    ) {
+      const newLikeCount = response.data.like;
+      const isLiked = response.data.liked; // 后端返回是否已点赞的状态
+
+      if (type === "discussion") {
+        const discussionIndex = discussions.value.findIndex((d) => d.id === id);
+        if (discussionIndex !== -1) {
+          discussions.value[discussionIndex].like = newLikeCount;
+          discussions.value[discussionIndex].isLiked = isLiked;
+        }
+      } else if (type === "reply") {
         discussions.value.forEach((discussion) => {
           if (discussion.replies) {
-            const replyIndex = discussion.replies.findIndex((reply: any) => reply.id === id);
+            const replyIndex = discussion.replies.findIndex(
+                (reply: any) => reply.id === id
+            );
             if (replyIndex !== -1) {
-              discussion.replies[replyIndex].like = response.data.like;
+              discussion.replies[replyIndex].like = newLikeCount;
+              discussion.replies[replyIndex].isLiked = isLiked;
             }
           }
         });
       }
     }
   } catch (error) {
-    console.error("Error liking:", error);
-    alert("点赞失败！");
+    console.error("Error liking or unliking:", error);
+    alert("操作失败！");
   }
 };
 
@@ -223,6 +245,16 @@ const submitReply = async (discussionId: number, index: number) => {
         // 检查是否已经加载过回复
         const isRepliesLoaded = discussions.value[index].replies !== undefined;
 
+        // 构建新回复对象，确保包含完整信息
+        const newReply = {
+          ...response.data.reply,
+          reply_type: targetType.value || 'discussion',
+          target_name: targetType.value ?
+              discussions.value[index].replies?.find((r: any) => r.id === targetId.value)?.replier_name
+              || discussions.value[index].author_name
+              : null
+        };
+
         // 如果没有加载过回复，则重新获取全部回复
         if (!isRepliesLoaded) {
           const repliesResponse = await proxy?.$http.get("/get_detailed_discussions", {
@@ -234,7 +266,7 @@ const submitReply = async (discussionId: number, index: number) => {
           }
         } else {
           // 如果已经加载过回复，直接追加新回复
-          discussions.value[index].replies.push(response.data.reply);
+          discussions.value[index].replies.push(newReply);
         }
 
         // 更新回复计数和显示状态
@@ -244,6 +276,8 @@ const submitReply = async (discussionId: number, index: number) => {
         // 重置回复编辑器
         activeReplyIndex.value = null;
         replyContent.value[index] = "";
+        targetType.value = null;
+        targetId.value = null;
       } else {
         alert("提交失败！");
       }
@@ -393,7 +427,11 @@ onMounted(() => {
 
     <!-- 评论区显示区 -->
     <div class="discuss-content">
-      <div class="discussion" v-for="(discussion, index) in discussions" :key="index">
+      <div
+          class="discussion"
+          v-for="(discussion, index) in discussions"
+          :key="index"
+      >
         <div class="discussion-left">
           <!-- 头像框 -->
           <div class="discussion-avatar">
@@ -404,12 +442,17 @@ onMounted(() => {
             <!-- 用户名，贴子发布时间 -->
             <div class="user">
               {{ discussion.author_name }}
-              &nbsp;&nbsp;<span style="font-size: small">{{ dayjs(discussion.created_at).format("YYYY-MM-DD") }}</span>
+              &nbsp;&nbsp;<span style="font-size: small">
+            {{ dayjs(discussion.created_at).format("YYYY-MM-DD") }}
+          </span>
             </div>
             <!-- 帖子内容 -->
             <div class="text">{{ discussion.content }}</div>
             <!-- 隐藏/显示子评论按钮 -->
-            <div v-if="discussion.replies_count > 0" class="view-replies-button">
+            <div
+                v-if="discussion.replies_count > 0"
+                class="view-replies-button"
+            >
               <el-button
                   type="text"
                   class="replies-toggle-btn"
@@ -446,10 +489,10 @@ onMounted(() => {
                     <el-button
                         class="like-btn"
                         type="text"
-                        icon="Star"
-                        @click="likeDoR(index, 'discussion')"
+                        :icon="reply.isLiked ? 'StarFilled' : 'Star'"
+                        @click="likeDoR(reply.id, 'reply')"
                     >
-                      <span>{{ discussion.like }}</span>
+                      <span>{{ reply.like }}</span>
                     </el-button>
                     <el-button
                         class="reply-btn"
@@ -460,7 +503,9 @@ onMounted(() => {
                   </div>
                 </div>
                 <div class="reply-content mt-2">
-                  <span v-if="reply.reply_type === 'reply'" style="color: blue">@{{ reply.target_name }} </span>
+              <span v-if="reply.reply_type === 'reply'" style="color: blue">
+                @{{ reply.target_name }}
+              </span>
                   {{ reply.reply_content }}
                 </div>
               </div>
@@ -492,8 +537,8 @@ onMounted(() => {
           <el-button
               class="like-btn"
               type="text"
-              icon="Star"
-              @click="likeDoR(index, 'discussion')"
+              :icon="discussion.isLiked ? 'StarFilled' : 'Star'"
+              @click="likeDoR(discussion.id, 'discussion')"
           >
             <span>{{ discussion.like }}</span>
           </el-button>
