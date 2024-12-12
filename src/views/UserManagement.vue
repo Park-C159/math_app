@@ -132,7 +132,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <el-button size="small">批量导入</el-button>
+<!--    <el-button size="small">批量导入</el-button>-->
     <table width="100%">
       <thead>
       <tr>
