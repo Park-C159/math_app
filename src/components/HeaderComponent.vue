@@ -77,6 +77,11 @@ const toCourse = (courseName: string, courseId: number) => {
   });
   // window.location.reload();
 }
+const toUserManage = () =>{
+  router.push({
+    path: '/user_management',
+  })
+}
 
 onMounted(() => {
   let is_login = localStorage.getItem('isLogin') === 'true';
@@ -143,6 +148,7 @@ onMounted(() => {
 <!--                        @click="$router.push('/test_management')">考试-->
 <!--          </el-menu-item>-->
           <el-menu-item index="11" @click="$router.push('/toolbox')">工具箱</el-menu-item>
+          <el-menu-item index="12" @click="$router.push('/knowledge_graph')">知识图谱</el-menu-item>
         </el-menu>
 
       </div>
@@ -152,6 +158,9 @@ onMounted(() => {
           <el-dropdown>
             <el-avatar> {{ Avatar }}</el-avatar>
             <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="toUserManage" v-if="userLevel!='student' && userLevel!=null">用户管理</el-dropdown-item>
+              </el-dropdown-menu>
               <el-dropdown-menu>
                 <el-dropdown-item @click="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>

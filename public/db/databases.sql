@@ -477,3 +477,29 @@ VALUES (1, 1, 'A', TRUE),        -- 用户1回答题目1，答案正确
        (2, 1, 'B', FALSE),       -- 用户2回答题目1，答案错误
        (2, 3, '填空答案', TRUE), -- 用户2回答题目3，答案正确
        (3, 2, '选择答案', TRUE); -- 用户3回答题目2，答案正确
+
+
+DROP TABLE IF EXISTS links;
+DROP TABLE IF EXISTS nodes;
+DROP TABLE IF EXISTS categories;
+
+CREATE TABLE IF NOT EXISTS categories (
+    id INT PRIMARY KEY,
+    name VARCHAR(255)
+);
+CREATE TABLE IF NOT EXISTS nodes (
+    id INT PRIMARY KEY,
+    name VARCHAR(255),
+    value INT,
+    category INT,
+    FOREIGN KEY (category) REFERENCES categories(id)  -- 外键关联到 categories 表
+);
+CREATE TABLE IF NOT EXISTS links (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    source INT,
+    target INT,
+    FOREIGN KEY (source) REFERENCES nodes(id),
+    FOREIGN KEY (target) REFERENCES nodes(id)
+);
+
