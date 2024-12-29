@@ -148,6 +148,7 @@ onMounted(() => {
 <!--                        @click="$router.push('/test_management')">考试-->
 <!--          </el-menu-item>-->
           <el-menu-item index="11" @click="$router.push('/toolbox')">工具箱</el-menu-item>
+          <el-menu-item index="12" @click="$router.push('/knowledge_graph')">知识图谱</el-menu-item>
         </el-menu>
 
       </div>
