@@ -27,8 +27,11 @@
     "mathjax-full": "^3.2.2",
     "mathlive": "^0.101.1",
     "mavon-editor": "^3.0.1",
+    "quill": "^2.0.3",
     "vue": "^3.5.12",
+    "vue-pdf-embed": "^2.1.1",
     "vue-puzzle-vcode": "^1.1.10",
+    "vue-quill-editor": "^3.0.6",
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
