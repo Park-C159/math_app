@@ -32,7 +32,9 @@
     "vue-pdf-embed": "^2.1.1",
     "vue-puzzle-vcode": "^1.1.10",
     "vue-quill-editor": "^3.0.6",
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.4.5",
+    "vue3-pdf-app": "^1.0.3",
+    "vue3-pdfjs": "^0.1.6"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",

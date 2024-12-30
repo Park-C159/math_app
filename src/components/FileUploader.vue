@@ -64,9 +64,9 @@ const generateInsertContent = (url: string, fileType: string, fileName: string) 
   const displayFormat = getFileDisplayFormat(fileType)
 
   if (displayFormat === 'image') {
-    return `![图片](${url})`
+    return `![图片-${fileName}](http://127.0.0.1:5000/api${url})`
   } else if (displayFormat === 'pdf') {
-    return `[PDF文件-${fileName}](${url})`
+    return `[PDF文件-${fileName}](http://127.0.0.1:5000/api${url})`
   }
   return ''
 }
@@ -144,11 +144,6 @@ const customUpload = async (options: UploadRequestOptions) => {
 
 <style scoped>
 .upload-demo {
-  display: inline-block;
-}
-
-/* 保持与Element Plus按钮一致的样式 */
-:deep(.el-upload) {
   display: inline-block;
 }
 </style>
