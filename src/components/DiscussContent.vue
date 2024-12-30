@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import {ref, getCurrentInstance, onMounted, watch} from "vue";
-import {Search, UserFilled, ArrowDown, Star} from "@element-plus/icons-vue";
+import {UserFilled} from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 import {ElMessage} from 'element-plus'
 import FilePreview from './FilePreview.vue';
 import ContentRenderer from './ContentRenderer.vue';
+import CustomPagination from "@/components/CustomPagination.vue";
+import EditorButtons from "@/components/EditorButtons.vue";
+import DiscussHeader from "@/components/DiscussHeader.vue";
 
 // 获取 Vue 实例
 const instance = getCurrentInstance();
@@ -21,32 +24,15 @@ const targetId = ref<number | null>(null); //记录回复评论的对象ID
 const currentPage = ref<number>(1);       // 当前页码
 const totalReplies = ref<number>(0);      // 总评论数
 const perPage = ref<number>(5);           // 每页显示的评论数
-const jumpToPage = ref<number | null>(null); // 跳转页码输入
 const timeFilter = ref('all'); // 保存当前的时间筛选条件
 const authorFilter = ref('all'); // 保存当前的人物筛选条件
-const emojiList = ["😀", "😁", "😂", "🤣", "😃", "😄", "😅", "😆", "😉", "😊", "😋", "😎", "😍", "😘", "🥰", "😗", "😙", "😚", "☺", "🙂", "🤗", "🤩", "🤔", "🤨", "😐", "😑", "😶", "🙄", "😏", "😣", "😥", "😮", "🤐", "😯", "😪", "😫", "🥱", "😴", "😌", "😛", "😜", "😝", "🤤", "😒", "😓", "😔", "😕", "🙃", "🤑", "😲", "☹", "🙁", "😖", "😞", "😟", "😤", "😢", "😭", "😦", "😧", "😨", "😩", "🤯", "😬", "😰", "😱", "🥵", "🥶", "😳", "🤪", "😵", "🥴", "😠", "😡", "🤬", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "😇", "🥺", "🤠", "🤡", "🤥", "🤫", "🤭", "🧐", "🤓", "😈", "👿", "👹", "👺", "💀", "☠", "👻", "👽", "👾", "🤖", " 💩", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🐱‍👤", "🐱‍🏍", "🐱‍💻", "🐱‍🐉", "🐱‍👓", "🐱‍🚀", "🙈", " 🙉", "🙊", "🐵", "🐶", "🐺", "🐱", "🦁", "🐯", "🦒", "🦊", "🦝", "🐮", "🐷", "🐗", "🐭", "🐹", "🐰", "🐻", "🐨", "🐼", "🐸", "🦓", "🐴", "🦄", "🐔", "🐲", "🐽", "🐾", "🐒", "🦍", "🦧", "🦮", "🐕‍🦺", "🐩", "🐕", "🐈", "🐅", "🐆", "🐎", "🦌", "🦏", "🦛", "🐂", "🐃", "🐄", "🐖", "🐏", "🐑", "🐐", "🐪", "🐫", "🦙", "🦘", "🦥", "🦨", "🦡", "🐘", "🐁", "🐀", "🦔", "🐇", "🐿", "🦎", "🐊", "🐢", "🐍", "🐉", "🦕", "🦖", "🦦", "🦈", "🐬", "🐳", "🐋", "🐟", "🐠", "🐡", "🦐", "🦑", "🐙", "🦞", "🦀", "🐚", "🦆", "🐓", "🦃", "🦅", "🕊", "🦢", "🦜", "🦩", "🦚", "🦉", "🐦", "🐧", "🐥", "🐤", "🐣", "🦇", "🦋", "🐌", "🐛", "🦟", "🦗", "🐜", "🐝", "🐞", "🦂", "🕷", "🕸", "🦠", "🧞‍♀️", "🧞‍♂️", "🗣", "👤", "👥", "👁", "👀", "🦴", "🦷", "👅", "👄", "🧠", "🦾", "🦿", "👣", "🤺", "⛷", "🤼‍♂️", "🤼‍♀️", "👯‍♂️", "👯‍♀️", "💑", "👩‍❤️‍👩", "👨‍❤️‍👨", "💏", "👩‍❤️‍💋‍👩", "👨‍❤️‍💋‍👨", "👪", "👨‍👩‍👦", "👨‍👩‍👧", "👨‍👩‍👧‍👦", "👨‍👩‍👦‍👦", "👨‍👩‍👧‍👧", "👨‍👨‍👦", " 👨‍👨‍👧", "👨‍👨‍👧‍👦", "👨‍👨‍👦‍👦", "👨‍👨‍👧‍👧", "👩‍👩‍👦", "👩‍👩‍👧", "👩‍👩‍👧‍👦", "👩‍👩‍👦‍👦", "👩‍👩‍👧‍👧", "👩‍👦", "👩‍👧", "👩‍👧‍👦", "👩‍👦‍👦", "👩‍👧‍👧", "👨‍👦", "👨‍👧", "👨‍👧‍👦", "👨‍👦‍👦", "👨‍👧‍👧", "👭", "👩🏻‍🤝‍👩🏻", "👩🏼‍🤝‍👩🏻", "👩🏼‍🤝‍👩🏼", "👩🏽‍🤝‍👩🏻", "👩🏽‍🤝‍👩🏼", "👩🏽‍🤝‍👩🏽", "👩🏾‍🤝‍👩🏻", "👩🏾‍🤝‍👩🏼", "👩🏾‍🤝‍👩🏽", "👩🏾‍🤝‍👩🏾", "👩🏿‍🤝‍👩🏻", "👩🏿‍🤝‍👩🏼", "👩🏿‍🤝‍👩🏽", "👩🏿‍🤝‍👩🏾", "👩🏿‍🤝‍👩🏿", "👫", "👩🏻‍🤝‍🧑🏻", "👩🏻‍🤝‍🧑🏼", "👩🏻‍🤝‍🧑🏽", "👩🏻‍🤝‍🧑🏾", "👩🏻‍🤝‍🧑🏿", "👩🏼‍🤝‍🧑🏻", "👩🏼‍🤝‍🧑🏼", "👩🏼‍🤝‍🧑🏽", "👩🏼‍🤝‍🧑🏾", "👩🏼‍🤝‍🧑🏿", "👩🏽‍🤝‍🧑🏻", "👩🏽‍🤝‍🧑🏼", "👩🏽‍🤝‍🧑🏽", "👩🏽‍🤝‍🧑🏾", "👩🏽‍🤝‍🧑🏿", "👩🏾‍🤝‍🧑🏻", "👩🏾‍🤝‍🧑🏼", "👩🏾‍🤝‍🧑🏽", "👩🏾‍🤝‍🧑🏾", "👩🏾‍🤝‍🧑🏿", "👩🏿‍🤝‍🧑🏻", "👩🏿‍🤝‍🧑🏼", "👩🏿‍🤝‍🧑🏽", "👩🏿‍🤝‍🧑🏾", "👩🏿‍🤝‍🧑🏿", "👬", "👨🏻‍🤝‍👨🏻", "👨🏼‍🤝‍👨🏻", "👨🏼‍🤝‍👨🏼", "👨🏽‍🤝‍👨🏻", "👨🏽‍🤝‍👨🏼", "👨🏽‍🤝‍👨🏽", "👨🏾‍🤝‍👨🏻", "👨🏾‍🤝‍👨🏼", "👨🏾‍🤝‍👨🏽", "👨🏾‍🤝‍👨🏾", "👨🏿‍🤝‍👨🏻", "👨🏿‍🤝‍👨🏼", "👨🏿‍🤝‍👨🏽", "👨🏿‍🤝‍👨🏾", "👨🏿‍🤝‍👨🏿"]
-const FILE_SIZE_LIMIT = 20 // 10MB
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp']
-const ALLOWED_PDF_TYPE = 'application/pdf'
 
-interface UploadFile {
-  raw: File;
-  name: string;
-  type: string;
-  size: number;
-}
-
-interface UploadRequestOptions {
-  file: File;
-  onProgress?: (progressEvent: { percent: number }) => void;
-  onSuccess?: (response: any) => void;
-  onError?: (error: any) => void;
-}
-
+// 主评论插入emoji
 const insertMainEmoji = (emoji: any) => {
   discussionContent.value += emoji
 }
 
+// 回复插入emoji
 const insertReplyEmoji = (emoji: any, index: number) => {
   if (!replyContent.value[index]) {
     replyContent.value[index] = ''
@@ -54,105 +40,17 @@ const insertReplyEmoji = (emoji: any, index: number) => {
   replyContent.value[index] += emoji
 }
 
-
-const beforeUpload = (file: File) => {
-  const isAllowedType = [...ALLOWED_IMAGE_TYPES, ALLOWED_PDF_TYPE].includes(file.type)
-  const isLt10M = file.size / 1024 / 1024 < FILE_SIZE_LIMIT
-
-  if (!isAllowedType) {
-    ElMessage({
-      type: 'error',
-      message: '只能上传图片或PDF文件！'
-    })
-    return false
-  }
-
-  if (!isLt10M) {
-    ElMessage({
-      type: 'error',
-      message: `文件大小不能超过 ${FILE_SIZE_LIMIT}MB!`
-    })
-    return false
-  }
-
-  return true
+// 处理主评论上传文件
+const handleMainUploadSuccess = (content: string) => {
+  discussionContent.value += content
 }
 
-const loading = ref(false)
-const uploadProgress = ref(0)
-
-// 获取文件显示格式
-const getFileDisplayFormat = (fileType: string) => {
-  if (ALLOWED_IMAGE_TYPES.includes(fileType)) {
-    return 'image'
-  } else if (fileType === ALLOWED_PDF_TYPE) {
-    return 'pdf'
+// 处理回复上传文件
+const handleReplyUploadSuccess = (content: string, index: number) => {
+  if (!replyContent.value[index]) {
+    replyContent.value[index] = ''
   }
-  return null
-}
-
-// 生成插入内容
-const generateInsertContent = (url: string, fileType: string, fileName: string) => {
-  const displayFormat = getFileDisplayFormat(fileType)
-
-  if (displayFormat === 'image') {
-    return `![图片](${url})`
-  } else if (displayFormat === 'pdf') {
-    return `[PDF文件-${fileName}](${url})`
-  }
-  return ''
-}
-
-const customUpload = async (options: UploadRequestOptions, index?: number) => {
-  const file = options.file
-  loading.value = true
-  uploadProgress.value = 0
-
-  try {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('file_type', options.file.type === ALLOWED_PDF_TYPE ? 'pdf' : 'image')
-
-    const response: any = await proxy?.$http.post("/upload", formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
-
-    if (response.data.code === 200) {
-      const insertContent = generateInsertContent(
-          response.data.data,
-          file.type,
-          file.name
-      )
-
-      // 插入内容到编辑器
-      if (index === undefined) {
-        discussionContent.value = (discussionContent.value || '') + insertContent
-      } else {
-        replyContent.value[index] = (replyContent.value[index] || '') + insertContent
-      }
-
-      ElMessage({
-        type: 'success',
-        message: '文件上传成功'
-      })
-
-      options.onSuccess?.(response)
-    } else {
-      throw new Error(response.data.msg || '上传失败')
-    }
-  } catch (error) {
-    console.error('上传错误:', error)
-    ElMessage({
-      type: 'error',
-      message: error instanceof Error ? error.message : '服务器错误，请联系管理员'
-    })
-    options.onError?.(error)
-  } finally {
-    loading.value = false
-    uploadProgress.value = 0
-  }
+  replyContent.value[index] += content
 }
 
 // 获取当前用户信息
@@ -429,18 +327,6 @@ const handlePageChange = (page: number) => {
 };
 
 
-// 跳转到指定评论区页面
-const jumpToSpecificPage = () => {
-  const totalPages = Math.ceil(totalReplies.value / perPage.value);
-  if (jumpToPage.value && jumpToPage.value > 0 && jumpToPage.value <= totalPages) {
-    getDiscussContent(jumpToPage.value);
-    jumpToPage.value = null;
-  } else {
-    ElMessage.error('请输入有效页码');
-  }
-};
-
-
 // 搜索功能
 const handleSearch = () => {
   currentPage.value = 1;
@@ -480,98 +366,25 @@ onMounted(() => {
 <template>
   <div class="discuss-container">
     <!-- 首部，包括搜索框、发布按钮、筛选功能 -->
-    <div class="discuss-header">
-      <div class="discuss-header-left">
-        <el-input
-            v-model="input"
-            style="max-width: 300px; text-align: left"
-            placeholder="请输入需要搜索的关键字"
-            class="input-with-select"
-            @keyup.enter="handleSearch"
-        >
-          <template #append>
-            <el-button :icon="Search" @click="handleSearch"/>
-          </template>
-        </el-input>
-        <el-button
-            class="new_discussion-btn"
-            color="rgb(173, 145, 255)"
-            plain
-            @click="handleCreateDiscussion"
-        >
-          发起讨论
-        </el-button>
-      </div>
-      <div class="filter">
-        <el-dropdown>
-          <span class="el-dropdown-link">
-            全部帖子
-            <el-icon class="el-icon--right">
-              <ArrowDown/>
-            </el-icon>
-          </span>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item @click="handleAuthorFilterClick('created_by_me')">我发布的</el-dropdown-item>
-              <el-dropdown-item @click="handleAuthorFilterClick('teacher_involved')">老师参与</el-dropdown-item>
-              <el-dropdown-item @click="handleAuthorFilterClick('all')">恢复默认</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-dropdown>
-          <span class="el-dropdown-link">
-            所有时间
-            <el-icon class="el-icon--right">
-              <ArrowDown/>
-            </el-icon>
-          </span>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item @click="handleTimeFilterClick('last_week')">最近一周</el-dropdown-item>
-              <el-dropdown-item @click="handleTimeFilterClick('last_month')">最近一月</el-dropdown-item>
-              <el-dropdown-item @click="handleTimeFilterClick('all')">恢复默认</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
-    </div>
+    <DiscussHeader
+        v-model:input="input"
+        @search="handleSearch"
+        @create-discussion="handleCreateDiscussion"
+        @time-filter-change="handleTimeFilterClick"
+        @author-filter-change="handleAuthorFilterClick"
+    />
 
     <!-- 编辑框（发言框） -->
     <div v-if="showEditor" class="editor-container">
       <FilePreview :content="discussionContent"/>
       <el-input v-model="discussionContent" type="textarea" placeholder="请输入讨论内容..." rows="4"
                 style="margin-bottom: 10px; border: none"/>
-      <div class="editor-buttons-left">
-        <el-popover placement="bottom" :width="300" trigger="click">
-          <template #reference>
-            <el-button icon="Plus"/>
-          </template>
-          <div class="emoji-container">
-            <span v-for="emoji in emojiList" :key="emoji" class="emoji-item" @click="insertMainEmoji(emoji)">{{
-                emoji
-              }}</span>
-          </div>
-        </el-popover>
-
-        <el-upload
-            class="upload-demo"
-            :http-request="(options:any) => customUpload(options)"
-            :auto-upload="true"
-            :show-file-list="false"
-            :before-upload="beforeUpload"
-            accept=".jpg,.jpeg,.png,.gif,.webp,.pdf"
-        >
-          <template #trigger>
-            <el-button :loading="loading" icon="Upload" plain>
-              {{ loading ? `上传中 ${uploadProgress}%` : '上传' }}
-            </el-button>
-          </template>
-        </el-upload>
-      </div>
-      <div class="editor-buttons-right">
-        <el-button class="new_discussion-btn" plain icon="Promotion" @click="submitDiscussion"/>
-        <el-button @click="showEditor = false;discussionContent=''" icon="Close"/>
-      </div>
+      <EditorButtons
+          @emoji-select="insertMainEmoji"
+          @file-upload="handleMainUploadSuccess"
+          @submit="submitDiscussion"
+          @cancel="() => { showEditor = false; discussionContent = ''; }"
+      />
     </div>
 
     <!-- 评论区显示区 -->
@@ -637,31 +450,12 @@ onMounted(() => {
             <div v-if="activeReplyIndex === index" class="reply-editor-container">
               <el-input v-model="replyContent[index]" type="textarea" placeholder="请输入回复内容..." rows="3"
                         style="margin-top: 10px; margin-bottom: 10px"/>
-              <div class="editor-buttons-left">
-                <el-popover placement="bottom" :width="300" trigger="click">
-                  <template #reference>
-                    <el-button icon="Plus"/>
-                  </template>
-                  <div class="emoji-container">
-                  <span v-for="emoji in emojiList" :key="emoji" class="emoji-item"
-                        @click="insertReplyEmoji(emoji, index)">{{ emoji }}</span>
-                  </div>
-                </el-popover>
-
-                <el-upload class="upload-demo" :http-request="(options:any) => customUpload(options, index)"
-                           :auto-upload="true" :show-file-list="false" :before-upload="beforeUpload"
-                           accept=".jpg,.jpeg,.png,.gif,.webp,.pdf">
-                  <template #trigger>
-                    <el-button :loading="loading" icon="Upload" plain>
-                      {{ loading ? `上传中 ${uploadProgress}%` : '上传' }}
-                    </el-button>
-                  </template>
-                </el-upload>
-              </div>
-              <div class="editor-buttons-right">
-                <el-button plain @click="submitReply(discussion.id, index)" icon="Promotion"/>
-                <el-button @click="activeReplyIndex = null" icon="Close"/>
-              </div>
+              <EditorButtons
+                  @emoji-select="(emoji) => insertReplyEmoji(emoji, index)"
+                  @file-upload="(content) => handleReplyUploadSuccess(content, index)"
+                  @submit="() => submitReply(discussion.id, index)"
+                  @cancel="() => {activeReplyIndex = null; replyContent = ''}"
+              />
             </div>
           </div>
         </div>
@@ -677,55 +471,18 @@ onMounted(() => {
     </div>
 
     <!-- 讨论区分页展示切换按钮 -->
-    <div class="pagination-container">
-      <div class="pagination-wrapper">
-        <!-- 切换 -->
-        <el-pagination
-            :current-page="currentPage"
-            :page-size="perPage"
-            :total="totalReplies"
-            layout="prev, pager, next"
-            @current-change="handlePageChange"
-            class="custom-pagination"
-        ></el-pagination>
-        <!-- 跳转 -->
-        <div class="jump-to-page">
-          <el-input
-              v-model="jumpToPage"
-              type="number"
-              placeholder="跳转页码"
-              size="small"
-              class="jump-input"
-          ></el-input>
-          <el-button
-              type="primary"
-              size="small"
-              @click="jumpToSpecificPage"
-              class="jump-button"
-          >
-            跳转
-          </el-button>
-        </div>
-      </div>
-    </div>
+    <CustomPagination
+        v-model:current-page="currentPage"
+        :per-page="perPage"
+        :total-items="totalReplies"
+        @page-change="handlePageChange"
+    />
   </div>
 </template>
 
 <style scoped>
 .discuss-container {
   width: 100%;
-}
-
-.discuss-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.discuss-header-left {
-  display: flex;
-  align-items: center;
 }
 
 .discuss-header-left > * {
@@ -824,50 +581,6 @@ onMounted(() => {
   width: 92%;
 }
 
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.pagination-wrapper {
-  display: flex;
-  align-items: center;
-  background-color: rgba(50, 50, 50, 0.5);
-  padding: 15px 25px;
-  border-radius: 12px;
-  backdrop-filter: blur(15px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.custom-pagination {
-  margin-right: 30px;
-}
-
-.jump-to-page {
-  display: flex;
-  align-items: center;
-}
-
-.jump-input {
-  width: 120px;
-  margin-right: 15px;
-}
-
-.jump-button {
-  background-color: rgba(95, 95, 95, 0.7);
-  border-color: transparent;
-  color: #fff;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
-
-.jump-button:hover {
-  background-color: rgba(110, 110, 110, 0.8);
-  transform: scale(1.05);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
 .custom-pagination :deep(.el-pager li) {
   background-color: rgba(70, 70, 70, 0.5);
   backdrop-filter: blur(10px);
@@ -891,11 +604,6 @@ onMounted(() => {
   font-size: 0.9em;
 }
 
-.filter {
-  display: flex;
-  gap: 20px;
-}
-
 /* 主容器样式 */
 .reply-editor-container,
 .editor-container {
@@ -905,69 +613,5 @@ onMounted(() => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
   background: white;
-}
-
-
-/* 按钮容器布局 */
-.editor-buttons-left {
-  display: flex;
-  gap: 8px;
-  margin: 8px 0;
-}
-
-.editor-buttons-right {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-/* 表情选择器样式 */
-.emoji-container {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  padding: 8px;
-  max-height: 200px; /* 设置最大高度 */
-  overflow-y: auto; /* 添加垂直滚动条 */
-}
-
-/* 自定义滚动条样式 */
-.emoji-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.emoji-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.emoji-container::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 3px;
-}
-
-.emoji-container::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-.emoji-item {
-  cursor: pointer;
-  text-align: center;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-}
-
-.emoji-item:hover {
-  background-color: #f5f7fa;
-}
-
-/* 按钮行容器 */
-.editor-container .buttons-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 8px;
 }
 </style>
