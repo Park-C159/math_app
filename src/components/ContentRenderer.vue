@@ -19,29 +19,37 @@
             {{ item.name }}
           </a>
         </div>
+        <vue-pdf-app
+            :pdf="item.url"
+            class="pdf-viewer"
+            @rendered="handlePdfRendered(index)"
+            @error="handlePdfError(index)"
+        />
 
         <template v-if="pdfStates[index]">
           <div v-if="pdfStates[index].loading" class="pdf-loading">
-            <el-icon class="is-loading"><Loading /></el-icon>
+            <el-icon class="is-loading">
+              <Loading/>
+            </el-icon>
             加载中...
           </div>
           <div v-else-if="pdfStates[index].error" class="pdf-error">
             PDF 加载失败，请检查文件链接或直接下载查看
           </div>
-          <vue-pdf-embed
-            v-else
-            :source="item.url"
-            class="pdf-viewer"
-            @rendered="handlePdfRendered(index)"
-            @error="handlePdfError(index)"
+          <vue-pdf-app
+              v-else
+              :pdf="item.url"
+              class="pdf-viewer"
+              @rendered="handlePdfRendered(index)"
+              @error="handlePdfError(index)"
           />
         </template>
 
         <el-button
-          v-else
-          type="primary"
-          link
-          @click="initPdfState(index)">
+            v-else
+            type="primary"
+            link
+            @click="initPdfState(index)">
           点击预览 PDF
         </el-button>
       </div>
@@ -51,19 +59,19 @@
 
     <!-- 图片预览弹窗 -->
     <el-dialog
-      v-model="imagePreviewVisible"
-      :append-to-body="true"
-      width="80%"
-      align-center>
-      <img :src="currentPreviewImage" style="width: 100%; height: auto;"/>
+        v-model="imagePreviewVisible"
+        :append-to-body="true"
+        width="80%"
+        align-center>
+      <img :src="currentPreviewImage" style="width: 100%; height: auto;" alt=""/>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import VuePdfEmbed from 'vue-pdf-embed';
-import { Document, Loading } from '@element-plus/icons-vue';
+import {ref, computed} from 'vue';
+import VuePdfApp from "vue3-pdf-app";
+import {Document, Loading} from '@element-plus/icons-vue';
 
 const props = defineProps<{
   content: string
