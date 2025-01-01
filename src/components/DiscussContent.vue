@@ -3,11 +3,11 @@ import {ref, getCurrentInstance, onMounted, watch} from "vue";
 import {UserFilled} from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 import {ElMessage} from 'element-plus'
-import FilePreview from './FilePreview.vue';
-import ContentRenderer from './ContentRenderer.vue';
-import CustomPagination from "@/components/CustomPagination.vue";
-import EditorButtons from "@/components/EditorButtons.vue";
-import DiscussHeader from "@/components/DiscussHeader.vue";
+import FilePreview from './discussion/FilePreview.vue';
+import ContentRenderer from './discussion/ContentRenderer.vue';
+import CustomPagination from "./discussion/CustomPagination.vue";
+import EditorButtons from "./discussion/EditorButtons.vue";
+import DiscussHeader from "./discussion/DiscussHeader.vue";
 
 // 获取 Vue 实例
 const instance = getCurrentInstance();
@@ -72,8 +72,11 @@ const getUserInfo = () => {
 
 
 // 获取讨论区主评论内容
-const getDiscussContent = async (page: number = 1) => {
+const getDiscussContent = async (page = 1) => {
   try {
+    // 1. 先清空当前显示内容
+    discussions.value = [];
+
     let userId = '';
     const userInfo = getUserInfo();
     if (userInfo && userInfo.id) {
@@ -94,6 +97,7 @@ const getDiscussContent = async (page: number = 1) => {
       },
     });
 
+    // 2. 检查是否有数据返回
     if (response?.data?.discussions && response.data.discussions.length > 0) {
       discussions.value = response.data.discussions.map((discussion: any) => ({
         ...discussion,
@@ -101,6 +105,9 @@ const getDiscussContent = async (page: number = 1) => {
       }));
       totalReplies.value = response.data.total || 0;
       currentPage.value = page;
+    } else {
+      // 3. 如果没有数据，显示空状态
+      ElMessage.info('未找到相关讨论');
     }
   } catch (error) {
     ElMessage.error('获取评论失败')

@@ -19,12 +19,16 @@
             {{ item.name }}
           </a>
         </div>
-        <vue-pdf-app
-            :pdf="item.url"
-            class="pdf-viewer"
-            @rendered="handlePdfRendered(index)"
-            @error="handlePdfError(index)"
-        />
+
+        <!-- PDFViewer 仅在点击预览时显示 -->
+        <div v-if="pdfStates[index] && pdfStates[index].rendered">
+          <PDFViewer
+              page-scale="page-fit"
+              :width="800"
+              :height="700"
+              theme="dark"
+              :src="item.url"/>
+        </div>
 
         <template v-if="pdfStates[index]">
           <div v-if="pdfStates[index].loading" class="pdf-loading">
@@ -33,24 +37,22 @@
             </el-icon>
             加载中...
           </div>
-          <div v-else-if="pdfStates[index].error" class="pdf-error">
-            PDF 加载失败，请检查文件链接或直接下载查看
-          </div>
-          <vue-pdf-app
-              v-else
-              :pdf="item.url"
-              class="pdf-viewer"
-              @rendered="handlePdfRendered(index)"
-              @error="handlePdfError(index)"
-          />
         </template>
 
-        <el-button
-            v-else
-            type="primary"
-            link
-            @click="initPdfState(index)">
+        <!-- 显示点击预览或关闭按钮 -->
+        <el-button v-if="!pdfStates[index]?.rendered"
+                   type="primary"
+                   link
+                   @click="initPdfState(index)">
           点击预览 PDF
+        </el-button>
+
+        <!-- 显示隐藏PDF按钮 -->
+        <el-button v-else
+                   type="danger"
+                   link
+                   @click="togglePdfViewer(index)">
+          隐藏 PDF
         </el-button>
       </div>
 
@@ -72,6 +74,7 @@
 import {ref, computed} from 'vue';
 import VuePdfApp from "vue3-pdf-app";
 import {Document, Loading} from '@element-plus/icons-vue';
+import PDFViewer from "@/components/PDFViewer.vue";
 
 const props = defineProps<{
   content: string
@@ -153,19 +156,17 @@ const initPdfState = (index: number) => {
     error: false,
     rendered: false
   };
-};
-
-const handlePdfRendered = (index: number) => {
-  if (pdfStates.value[index]) {
+  // 模拟加载完成
+  setTimeout(() => {
     pdfStates.value[index].loading = false;
     pdfStates.value[index].rendered = true;
-  }
+  }, 1500); // 延迟 1.5 秒模拟加载
 };
 
-const handlePdfError = (index: number) => {
+const togglePdfViewer = (index: number) => {
+  // 隐藏 PDF 时将 rendered 设置为 false
   if (pdfStates.value[index]) {
-    pdfStates.value[index].loading = false;
-    pdfStates.value[index].error = true;
+    pdfStates.value[index].rendered = false;
   }
 };
 </script>
