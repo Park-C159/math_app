@@ -24,7 +24,7 @@
         <div v-if="pdfStates[index] && pdfStates[index].rendered">
           <PDFViewer
               page-scale="page-fit"
-              :width="800"
+              width="100%"
               :height="700"
               theme="dark"
               :src="item.url"/>
