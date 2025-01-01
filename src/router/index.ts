@@ -18,6 +18,7 @@ import BrowserExam from "@/views/BrowserExam.vue";
 import MarkCenter from "@/views/MarkCenter.vue";
 import UserManagement from "@/views/UserManagement.vue";
 import KnowledgeGraph from "@/views/KnowledgeGraph.vue";
+import ChatAIView from "@/views/ChatAIView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,6 +52,11 @@ const router = createRouter({
       name: 'symbolic',
       component: SymbolicLogic,
       // meta: { hideHeaderFooter: true }
+    },{
+      path: '/chat_ai',
+      name: 'chat_ai',
+      component: ChatAIView,
+      meta: { hideHeaderFooter: true }
     },{
       path: '/course_content',
       name: 'course_content',
