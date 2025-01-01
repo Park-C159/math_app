@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CourseStruct from "@/components/CourseStruct.vue";
 import DiscussContent from "@/components/DiscussContent.vue";
+import BellContent from "@/components/BellContent.vue";
 import {ref, getCurrentInstance, onMounted, watch} from 'vue';
 import {UserFilled, Calendar, Location, Document, Setting} from '@element-plus/icons-vue';
 import {useRoute, useRouter} from "vue-router";
@@ -168,7 +169,7 @@ watch(() => route.query.courseId, (newCourseId) => {
           <DiscussContent courseName="数理逻辑"/>
         </div>
         <div v-else-if="ContentID === 3">
-          <p>公告内容</p>
+          <BellContent/>
         </div>
         <div v-else-if="ContentID === 4">
           <p>成绩内容</p>

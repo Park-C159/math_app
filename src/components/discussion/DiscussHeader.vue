@@ -2,6 +2,8 @@
 import {ref} from "vue";
 import {Search, ArrowDown} from "@element-plus/icons-vue";
 
+const timeFilterText = ref('所有时间');
+const authorFilterText = ref('全部帖子');
 const props = defineProps<{
   input: string
 }>();
@@ -23,10 +25,12 @@ const handleCreateDiscussion = () => {
 };
 
 const handleTimeFilterClick = (filter: string) => {
+  timeFilterText.value = filter === 'last_week' ? '最近一周' : filter === 'last_month' ? '最近一月' : '所有时间';
   emit('time-filter-change', filter);
 };
 
 const handleAuthorFilterClick = (filter: string) => {
+  authorFilterText.value = filter === 'created_by_me' ? '我发布的' : filter === 'teacher_involved' ? '老师参与' : '全部帖子';
   emit('author-filter-change', filter);
 };
 </script>
@@ -58,7 +62,7 @@ const handleAuthorFilterClick = (filter: string) => {
     <div class="filter">
       <el-dropdown>
         <span class="el-dropdown-link">
-          全部帖子
+          {{ authorFilterText }}
           <el-icon class="el-icon--right">
             <ArrowDown/>
           </el-icon>
@@ -67,13 +71,13 @@ const handleAuthorFilterClick = (filter: string) => {
           <el-dropdown-menu>
             <el-dropdown-item @click="handleAuthorFilterClick('created_by_me')">我发布的</el-dropdown-item>
             <el-dropdown-item @click="handleAuthorFilterClick('teacher_involved')">老师参与</el-dropdown-item>
-            <el-dropdown-item @click="handleAuthorFilterClick('all')">恢复默认</el-dropdown-item>
+            <el-dropdown-item @click="handleAuthorFilterClick('all')">全部帖子</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
       <el-dropdown>
         <span class="el-dropdown-link">
-          所有时间
+          {{ timeFilterText }}
           <el-icon class="el-icon--right">
             <ArrowDown/>
           </el-icon>
@@ -82,7 +86,7 @@ const handleAuthorFilterClick = (filter: string) => {
           <el-dropdown-menu>
             <el-dropdown-item @click="handleTimeFilterClick('last_week')">最近一周</el-dropdown-item>
             <el-dropdown-item @click="handleTimeFilterClick('last_month')">最近一月</el-dropdown-item>
-            <el-dropdown-item @click="handleTimeFilterClick('all')">恢复默认</el-dropdown-item>
+            <el-dropdown-item @click="handleTimeFilterClick('all')">所有时间</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

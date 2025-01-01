@@ -34,7 +34,9 @@
     "vue-puzzle-vcode": "^1.1.10",
     "vue-quill-editor": "^3.0.6",
     "vue-router": "^4.4.5",
-    "vue-socket.io": "^3.0.10"
+    "vue-socket.io": "^3.0.10",
+    "vue3-pdf-app": "^1.0.3",
+    "vue3-pdfjs": "^0.1.6"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
@@ -42,6 +44,7 @@
     "@vitejs/plugin-vue": "^5.1.4",
     "@vitejs/plugin-vue-jsx": "^4.0.1",
     "@vue/tsconfig": "^0.5.1",
+    "less": "^4.2.1",
     "npm-run-all2": "^6.2.3",
     "typescript": "~5.5.4",
     "vite": "^5.4.8",

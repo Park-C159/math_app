@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import EmojiPicker from './EmojiPicker.vue';
-import FileUploader from "@/components/FileUploader.vue";
+import FileUploader from "./FileUploader.vue";
 
 interface Props {
   showRight?: boolean; // 控制是否显示右侧按钮组
