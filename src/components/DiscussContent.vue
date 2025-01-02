@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import {ref, getCurrentInstance, onMounted, watch} from "vue";
-import {UserFilled} from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 import {ElMessage} from 'element-plus'
 import FilePreview from './discussion/FilePreview.vue';
+import DiscussHeader from "./discussion/DiscussHeader.vue";
+import EditorButtons from "./discussion/EditorButtons.vue";
+import {ref, getCurrentInstance, onMounted, watch} from "vue";
 import ContentRenderer from './discussion/ContentRenderer.vue';
 import CustomPagination from "./discussion/CustomPagination.vue";
-import EditorButtons from "./discussion/EditorButtons.vue";
-import DiscussHeader from "./discussion/DiscussHeader.vue";
+import AvatarWithRole from "@/components/AvatarWithRole.vue";
 
-// 获取 Vue 实例
 const instance = getCurrentInstance();
 const proxy = instance?.proxy;
 const props = defineProps<{ courseName: string }>();
@@ -152,7 +151,7 @@ const loadReplies = async (discussionId: number, index: number) => {
 
 
 // 对主评论或者子评论进行点赞或取消点赞
-const likeDoR = async (id: number, type: string) => {
+const likeComment = async (id: number, type: string) => {
   const user = getUserInfo();
   if (!user) {
     ElMessage.error('请先登录');
@@ -204,14 +203,11 @@ const handleCreateDiscussion = () => {
   const userInfo = getUserInfo();
 
   if (userInfo) {
-    console.log(`User ${userInfo.username} is creating a discussion...`);
     showEditor.value = true;
   } else {
-    console.warn("Cannot create a discussion without valid user information.");
     ElMessage.error('请先登录');
   }
 };
-
 
 // 处理回复按钮点击事件
 const handleReplyClick = (discussionIndex: number, target_type: string, target_id: number) => {
@@ -245,7 +241,7 @@ const submitDiscussion = async () => {
       });
 
       if (response?.data?.message === "讨论创建成功") {
-        discussions.value.unshift(response.data.discussion);  // 添加到前端
+        discussions.value.unshift(response.data.discussion);
         showEditor.value = false;
         discussionContent.value = "";  // 清空内容
         totalReplies.value += 1; // 增加总评论数
@@ -260,7 +256,6 @@ const submitDiscussion = async () => {
     ElMessage.error('提交内容不能为空');
   }
 };
-
 
 // 新增：提交回复
 const submitReply = async (discussionId: number, index: number) => {
@@ -327,33 +322,27 @@ const submitReply = async (discussionId: number, index: number) => {
   }
 };
 
-
 // 评论区分页显示切换
 const handlePageChange = (page: number) => {
   getDiscussContent(page);
 };
 
-
 // 搜索功能
 const handleSearch = () => {
-  currentPage.value = 1;
-  getDiscussContent();
+  getDiscussContent(1);
 };
-
 
 // 处理时间筛选按钮点击事件
 const handleTimeFilterClick = (filter: string) => {
-  timeFilter.value = filter; // 更新时间筛选条件
-  getDiscussContent(1); // 重新获取第一页数据
+  timeFilter.value = filter;
+  getDiscussContent(1);
 };
-
 
 // 处理人物筛选按钮点击事件
 const handleAuthorFilterClick = (filter: string) => {
-  authorFilter.value = filter; // 更新时间筛选条件
-  getDiscussContent(1); // 重新获取第一页数据
+  authorFilter.value = filter;
+  getDiscussContent(1);
 };
-
 
 // 监听搜索框输入内容
 watch(input, (newInput) => {
@@ -363,7 +352,6 @@ watch(input, (newInput) => {
     getDiscussContent(1);
   }
 });
-
 
 onMounted(() => {
   getDiscussContent(currentPage.value);
@@ -397,19 +385,16 @@ onMounted(() => {
     <!-- 评论区显示区 -->
     <div class="discuss-content">
       <div class="discussion" v-for="(discussion, index) in discussions" :key="index">
-        <div class="discussion-left">
-          <div class="discussion-avatar">
-            <el-avatar :icon="UserFilled"/>
-          </div>
+        <div class="user-info">
+          <AvatarWithRole :replierRole="discussion.author_role"/>
           <div class="discussion-main">
-            <div class="user">
+            <span class="user-name">
               {{ discussion.author_name }}
-              &nbsp;&nbsp;<span style="font-size: small">
+            </span>
+            <span class="create-time">
               {{ dayjs(discussion.created_at).format("YYYY-MM-DD") }}
             </span>
-            </div>
-            <!-- 修改后的帖子内容展示 -->
-            <div class="text">
+            <div>
               <ContentRenderer :content="discussion.content"/>
             </div>
 
@@ -425,32 +410,62 @@ onMounted(() => {
               <div v-for="(reply, replyIndex) in discussion.replies" :key="replyIndex"
                    class="reply-container border rounded-md p-3 mb-2 bg-gray-50">
                 <div class="reply-header flex justify-between items-center">
-                  <div class="reply-user-info">
-                    <div class="discussion-avatar">
-                      <el-avatar :icon="UserFilled"/>
-                    </div>
-                    <div class="reply-user font-bold text-base">
-                      {{ reply.replier_name }}
-                    </div>
-                    <div class="reply-time text-gray-500 text-sm">
-                      {{ dayjs(reply.reply_time).format("YYYY-MM-DD") }}
+                  <div class="user-info">
+                    <AvatarWithRole :replierRole="reply.replier_role"/>
+                    <div class="discussion-main">
+                      <span class="user-name">
+                        {{ reply.replier_name }}
+                      </span>
+                      <span class="create-time">
+                        {{ dayjs(reply.reply_time).format("YYYY-MM-DD") }}
+                      </span>
+                      <div>
+                        <span v-if="reply.reply_type === 'reply'" style="color: #00a8ff">
+                          @{{ reply.target_name }}
+                        </span>
+                        <ContentRenderer :content="reply.reply_content"/>
+                      </div>
                     </div>
                   </div>
-                  <div class="reply-actions">
-                    <el-button class="like-btn" type="text" :icon="reply.isLiked ? 'StarFilled' : 'Star'"
-                               @click="likeDoR(reply.id, 'reply')">
-                      <span>{{ reply.like }}</span>
+                  <div class="comment-actions">
+                    <el-button class="like-btn" type="text" @click="likeComment(reply.id, 'reply')">
+                      <template v-if="reply.isLiked">
+                        <svg x="1735831356929" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                             xmlns="http://www.w3.org/2000/svg" p-id="6725" width="20" height="20">
+                          <path
+                              d="M64 483.04V872c0 37.216 30.144 67.36 67.36 67.36H192V416.32l-60.64-0.64A67.36 67.36 0 0 0 64 483.04zM857.28 344.992l-267.808 1.696c12.576-44.256 18.944-83.584 18.944-118.208 0-78.56-68.832-155.488-137.568-145.504-60.608 8.8-67.264 61.184-67.264 126.816v59.264c0 76.064-63.84 140.864-137.856 148L256 416.96v522.4h527.552a102.72 102.72 0 0 0 100.928-83.584l73.728-388.96a102.72 102.72 0 0 0-100.928-121.824z"
+                              p-id="6726" fill="#bfbfbf"></path>
+                        </svg>
+                      </template>
+                      <template v-else>
+                        <svg x="1735831311461" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                             xmlns="http://www.w3.org/2000/svg" p-id="6321" width="20" height="20">
+                          <path
+                              d="M190.193225 471.411583c14.446014 0 26.139334-11.718903 26.139334-26.13831 0-14.44499-11.69332-26.164916-26.139334-26.164916-0.271176 0-0.490164 0.149403-0.73678 0.149403l-62.496379 0.146333c-1.425466-0.195451-2.90005-0.295735-4.373611-0.295735-19.677155 0-35.621289 16.141632-35.621289 36.114522L86.622358 888.550075c0 19.949354 15.96767 35.597753 35.670407 35.597753 1.916653 0 3.808746 0.292666 5.649674 0l61.022819 0.022513c0.099261 0 0.148379 0.048095 0.24764 0.048095 0.097214 0 0.146333-0.048095 0.24457-0.048095l0.73678 0 0-0.148379c13.413498-0.540306 24.174586-11.422144 24.174586-24.960485 0-13.55983-10.760065-24.441669-24.174586-24.981974l0-0.393973-50.949392 0 1.450025-402.275993L190.193225 471.409536z"
+                              fill="#bfbfbf" p-id="6322"></path>
+                          <path
+                              d="M926.52241 433.948343c-19.283182-31.445176-47.339168-44.172035-81.289398-45.546336-1.77032-0.246617-3.536546-0.39295-5.380544-0.39295l-205.447139-0.688685c13.462616-39.059598 22.698978-85.58933 22.698978-129.317251 0-28.349675-3.193739-55.962569-9.041934-82.542948l-0.490164 0.049119c-10.638291-46.578852-51.736315-81.31498-100.966553-81.31498-57.264215 0-95.466282 48.15065-95.466282 106.126063 0 3.241834-0.294712 6.387477 0 9.532097-2.996241 108.386546-91.240027 195.548698-196.23636 207.513194l0 54.881958-0.785899 222.227314 0 229.744521 10.709923 0 500.025271 0.222057 8.746198-0.243547c19.35686 0.049119 30.239721-4.817726 47.803749-16.116049 16.682961-10.761088 29.236881-25.50079 37.490869-42.156122 2.260483-3.341095 4.028757-7.075139 5.106298-11.20111l77.018118-344.324116c1.056052-4.053316 1.348718-8.181333 1.056052-12.160971C943.643346 476.446249 938.781618 453.944769 926.52241 433.948343zM893.82573 486.837924l-82.983993 367.783411-0.099261-0.049119c-2.555196 6.141884-6.879688 11.596106-12.872169 15.427364-4.177136 2.727111-8.773827 4.351098-13.414521 4.964058-1.49812-0.195451-3.046383 0-4.620227 0l-477.028511-0.540306-0.171915-407.408897c89.323375-40.266076 154.841577-79.670527 188.596356-173.661202 0.072655 0.024559 0.124843 0.049119 0.195451 0.072655 2.99931-9.137101 6.313799-20.73423 8.697079-33.164331 5.551436-29.185716 5.258771-58.123792 5.258771-58.123792-4.937452-37.98001 25.940812-52.965306 44.364417-52.965306 25.304316 0.860601 50.263777 33.656541 50.263777 52.326762 0 0 5.600555 27.563776 5.649674 57.190537 0.048095 37.366026-4.6673 56.847729-4.6673 56.847729l-0.466628 0c-5.872754 30.879288-16.214287 60.138682-30.464849 86.964654l0.36839 0.342808c-2.358721 4.815679-3.709485 10.220782-3.709485 15.943111 0 19.922748 19.088754 21.742187 38.765909 21.742187l238.761895 0.270153c0 0 14.666024 0.465604 14.690584 0.465604l0 0.100284c12.132318-0.638543 24.221658 5.207605 31.100322 16.409738 5.504364 9.016351 6.437619 19.6045 3.486404 28.988218L893.82573 486.837924z"
+                              fill="#bfbfbf" p-id="6323"></path>
+                          <path
+                              d="M264.827039 924.31872c0.319272 0.024559 0.441045 0.024559 0.295735-0.024559 0.243547-0.048095 0.367367-0.074701-0.295735-0.074701s-0.539282 0.026606-0.271176 0.074701C264.43409 924.343279 264.532327 924.343279 264.827039 924.31872z"
+                              fill="#bfbfbf" p-id="6324"></path>
+                        </svg>
+                      </template>
+                      <span style="margin-left: 7px">{{ reply.like }}</span>
                     </el-button>
-                    <el-button class="reply-btn" style="background: transparent; margin-left: 0" icon="EditPen"
-                               @click="handleReplyClick(index, 'reply', reply.id)"/>
+                    <el-button
+                        class="reply-btn"
+                        @click="handleReplyClick(index, 'reply', reply.id)">
+                      <svg x="1735831070372" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                           xmlns="http://www.w3.org/2000/svg" p-id="5090" width="20" height="20">
+                        <path
+                            d="M298.666667 128C183.893333 128 85.333333 215.125333 85.333333 329.130667v237.738666C85.333333 680.874667 183.893333 768 298.666667 768a42.666667 42.666667 0 1 0 0-85.333333c-73.728 0-128-54.784-128-115.797334V329.130667C170.666667 268.117333 224.938667 213.333333 298.666667 213.333333h426.666666c73.728 0 128 54.784 128 115.797334v237.738666C853.333333 627.882667 799.061333 682.666667 725.333333 682.666667a42.666667 42.666667 0 0 0-42.666666 42.666666v96.213334l-142.122667-127.914667A42.666667 42.666667 0 0 0 512 682.666667h-42.666667a42.666667 42.666667 0 1 0 0 85.333333h26.282667l129.962667 116.949333C680.533333 934.4 768 895.402667 768 821.546667v-57.6c95.488-18.432 170.666667-97.536 170.666667-197.12v-237.653334C938.666667 215.082667 840.106667 128 725.333333 128H298.666667zM256 341.333333a42.666667 42.666667 0 0 1 42.666667-42.666666h426.666666a42.666667 42.666667 0 1 1 0 85.333333H298.666667a42.666667 42.666667 0 0 1-42.666667-42.666667z m42.666667 128a42.666667 42.666667 0 1 0 0 85.333334h256a42.666667 42.666667 0 1 0 0-85.333334H298.666667z"
+                            fill="#bfbfbf" p-id="5091"></path>
+                      </svg>
+                    </el-button>
                   </div>
                 </div>
-                <div class="reply-content mt-2">
-                <span v-if="reply.reply_type === 'reply'" style="color: blue">
-                  @{{ reply.target_name }}
-                </span>
-                  <ContentRenderer :content="reply.reply_content"/>
-                </div>
+
               </div>
             </div>
 
@@ -466,13 +481,42 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="discussion-actions">
-          <el-button class="like-btn" type="text" :icon="discussion.isLiked ? 'StarFilled' : 'Star'"
-                     @click="likeDoR(discussion.id, 'discussion')">
-            <span>{{ discussion.like }}</span>
+        <div class="comment-actions">
+          <el-button class="like-btn" type="text" @click="likeComment(discussion.id, 'discussion')">
+            <template v-if="discussion.isLiked">
+              <svg x="1735831356929" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                   xmlns="http://www.w3.org/2000/svg" p-id="6725" width="20" height="20">
+                <path
+                    d="M64 483.04V872c0 37.216 30.144 67.36 67.36 67.36H192V416.32l-60.64-0.64A67.36 67.36 0 0 0 64 483.04zM857.28 344.992l-267.808 1.696c12.576-44.256 18.944-83.584 18.944-118.208 0-78.56-68.832-155.488-137.568-145.504-60.608 8.8-67.264 61.184-67.264 126.816v59.264c0 76.064-63.84 140.864-137.856 148L256 416.96v522.4h527.552a102.72 102.72 0 0 0 100.928-83.584l73.728-388.96a102.72 102.72 0 0 0-100.928-121.824z"
+                    p-id="6726" fill="#bfbfbf"></path>
+              </svg>
+            </template>
+            <template v-else>
+              <svg x="1735831311461" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                   xmlns="http://www.w3.org/2000/svg" p-id="6321" width="20" height="20">
+                <path
+                    d="M190.193225 471.411583c14.446014 0 26.139334-11.718903 26.139334-26.13831 0-14.44499-11.69332-26.164916-26.139334-26.164916-0.271176 0-0.490164 0.149403-0.73678 0.149403l-62.496379 0.146333c-1.425466-0.195451-2.90005-0.295735-4.373611-0.295735-19.677155 0-35.621289 16.141632-35.621289 36.114522L86.622358 888.550075c0 19.949354 15.96767 35.597753 35.670407 35.597753 1.916653 0 3.808746 0.292666 5.649674 0l61.022819 0.022513c0.099261 0 0.148379 0.048095 0.24764 0.048095 0.097214 0 0.146333-0.048095 0.24457-0.048095l0.73678 0 0-0.148379c13.413498-0.540306 24.174586-11.422144 24.174586-24.960485 0-13.55983-10.760065-24.441669-24.174586-24.981974l0-0.393973-50.949392 0 1.450025-402.275993L190.193225 471.409536z"
+                    fill="#bfbfbf" p-id="6322"></path>
+                <path
+                    d="M926.52241 433.948343c-19.283182-31.445176-47.339168-44.172035-81.289398-45.546336-1.77032-0.246617-3.536546-0.39295-5.380544-0.39295l-205.447139-0.688685c13.462616-39.059598 22.698978-85.58933 22.698978-129.317251 0-28.349675-3.193739-55.962569-9.041934-82.542948l-0.490164 0.049119c-10.638291-46.578852-51.736315-81.31498-100.966553-81.31498-57.264215 0-95.466282 48.15065-95.466282 106.126063 0 3.241834-0.294712 6.387477 0 9.532097-2.996241 108.386546-91.240027 195.548698-196.23636 207.513194l0 54.881958-0.785899 222.227314 0 229.744521 10.709923 0 500.025271 0.222057 8.746198-0.243547c19.35686 0.049119 30.239721-4.817726 47.803749-16.116049 16.682961-10.761088 29.236881-25.50079 37.490869-42.156122 2.260483-3.341095 4.028757-7.075139 5.106298-11.20111l77.018118-344.324116c1.056052-4.053316 1.348718-8.181333 1.056052-12.160971C943.643346 476.446249 938.781618 453.944769 926.52241 433.948343zM893.82573 486.837924l-82.983993 367.783411-0.099261-0.049119c-2.555196 6.141884-6.879688 11.596106-12.872169 15.427364-4.177136 2.727111-8.773827 4.351098-13.414521 4.964058-1.49812-0.195451-3.046383 0-4.620227 0l-477.028511-0.540306-0.171915-407.408897c89.323375-40.266076 154.841577-79.670527 188.596356-173.661202 0.072655 0.024559 0.124843 0.049119 0.195451 0.072655 2.99931-9.137101 6.313799-20.73423 8.697079-33.164331 5.551436-29.185716 5.258771-58.123792 5.258771-58.123792-4.937452-37.98001 25.940812-52.965306 44.364417-52.965306 25.304316 0.860601 50.263777 33.656541 50.263777 52.326762 0 0 5.600555 27.563776 5.649674 57.190537 0.048095 37.366026-4.6673 56.847729-4.6673 56.847729l-0.466628 0c-5.872754 30.879288-16.214287 60.138682-30.464849 86.964654l0.36839 0.342808c-2.358721 4.815679-3.709485 10.220782-3.709485 15.943111 0 19.922748 19.088754 21.742187 38.765909 21.742187l238.761895 0.270153c0 0 14.666024 0.465604 14.690584 0.465604l0 0.100284c12.132318-0.638543 24.221658 5.207605 31.100322 16.409738 5.504364 9.016351 6.437619 19.6045 3.486404 28.988218L893.82573 486.837924z"
+                    fill="#bfbfbf" p-id="6323"></path>
+                <path
+                    d="M264.827039 924.31872c0.319272 0.024559 0.441045 0.024559 0.295735-0.024559 0.243547-0.048095 0.367367-0.074701-0.295735-0.074701s-0.539282 0.026606-0.271176 0.074701C264.43409 924.343279 264.532327 924.343279 264.827039 924.31872z"
+                    fill="#bfbfbf" p-id="6324"></path>
+              </svg>
+            </template>
+            <span style="margin-left: 7px">{{ discussion.like }}</span>
           </el-button>
-          <el-button class="reply-btn" style="background: transparent; margin-left: 0" icon="EditPen"
-                     @click="handleReplyClick(index, 'discussion', discussion.id)"/>
+          <el-button
+              class="reply-btn"
+              @click="handleReplyClick(index, 'discussion', discussion.id)">
+            <svg x="1735831070372" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 p-id="5090" width="20" height="20">
+              <path
+                  d="M298.666667 128C183.893333 128 85.333333 215.125333 85.333333 329.130667v237.738666C85.333333 680.874667 183.893333 768 298.666667 768a42.666667 42.666667 0 1 0 0-85.333333c-73.728 0-128-54.784-128-115.797334V329.130667C170.666667 268.117333 224.938667 213.333333 298.666667 213.333333h426.666666c73.728 0 128 54.784 128 115.797334v237.738666C853.333333 627.882667 799.061333 682.666667 725.333333 682.666667a42.666667 42.666667 0 0 0-42.666666 42.666666v96.213334l-142.122667-127.914667A42.666667 42.666667 0 0 0 512 682.666667h-42.666667a42.666667 42.666667 0 1 0 0 85.333333h26.282667l129.962667 116.949333C680.533333 934.4 768 895.402667 768 821.546667v-57.6c95.488-18.432 170.666667-97.536 170.666667-197.12v-237.653334C938.666667 215.082667 840.106667 128 725.333333 128H298.666667zM256 341.333333a42.666667 42.666667 0 0 1 42.666667-42.666666h426.666666a42.666667 42.666667 0 1 1 0 85.333333H298.666667a42.666667 42.666667 0 0 1-42.666667-42.666667z m42.666667 128a42.666667 42.666667 0 1 0 0 85.333334h256a42.666667 42.666667 0 1 0 0-85.333334H298.666667z"
+                  fill="#bfbfbf" p-id="5091"></path>
+            </svg>
+          </el-button>
         </div>
       </div>
     </div>
@@ -488,63 +532,42 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.discuss-container {
-  width: 100%;
-}
-
-.discuss-header-left > * {
-  margin-right: 10px;
-}
-
 .discuss-content {
-  background-color: rgba(30, 30, 30, 0.7);
+  background: rgba(255, 255, 255, 0.1);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 1rem;
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.discuss-content .discussion {
-  display: flex;
-  align-items: flex-start;
-}
-
-.discuss-content .discussion-left {
-  display: flex;
-  width: 100%;
 }
 
 .discuss-content .discussion-avatar {
-  flex-shrink: 0; /* Prevents avatar from shrinking */
-  margin-right: 10px; /* Add some space between avatar and main content */
+  margin-right: 10px;
 }
 
 .discuss-content .discussion-main {
-  flex-grow: 1; /* Allows the main content to expand and fill available space */
-  min-width: 0; /* Prevents text overflow issues in flex containers */
-  width: 100%; /* Ensures full width within the flex container */
+  width: 100%;
+}
+
+.user-name {
+  font-size: large;
+}
+
+.create-time {
+  font-size: smaller;
+  margin-left: 0.5rem;
+  color: gray;
 }
 
 .discussion {
   padding: 1rem;
   display: flex;
-  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.85);
-  background: #444;
+  box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
   margin-top: 1rem;
   border-radius: 1rem;
-  justify-content: space-between;
-}
-
-.discussion-left {
-  display: flex;
 }
 
 .discussion-main {
   margin-left: 0.5rem;
-}
-
-.discussion-actions {
-  display: flex;
 }
 
 .like-btn {
@@ -553,71 +576,39 @@ onMounted(() => {
   color: white;
 }
 
-.reply-btn {
+.comment-actions .reply-btn {
   border: none;
   background: transparent;
-  margin-left: 0;
   color: white;
 }
 
 .reply-container {
-  border-radius: 10px;
-  padding: 4px 4px 4px 17px;
+  border-radius: 1rem;
+  padding: 1rem;
   border: 1px solid gray;
   transition: background-color 0.3s ease;
   margin-bottom: 7px;
 }
 
-.reply-user-info {
+.user-info {
+  width: 100%;
   display: flex;
 }
 
 .reply-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 5px;
 }
 
-.reply-actions {
+.comment-actions {
   display: flex;
-  align-items: center;
 }
 
-.reply-content {
-  width: 92%;
-}
-
-.custom-pagination :deep(.el-pager li) {
-  background-color: rgba(70, 70, 70, 0.5);
-  backdrop-filter: blur(10px);
-  margin: 0 5px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  color: white !important;
-}
-
-.custom-pagination :deep(.el-pager li:hover) {
-  background-color: rgba(90, 90, 90, 0.7);
-  transform: scale(1.1);
-}
-
-.replies-toggle-btn {
-  color: #888;
-  text-decoration: none;
-  padding: 0;
-  background: none;
-  border: none;
-  font-size: 0.9em;
-}
-
-/* 主容器样式 */
 .reply-editor-container,
 .editor-container {
   border: 1px solid #e4e7ed;
-  border-radius: 8px;
+  border-radius: 1rem;
   padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
   background: white;
 }
