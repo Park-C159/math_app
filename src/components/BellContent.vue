@@ -27,42 +27,31 @@
 
     <!-- Main Content -->
     <div class="main-content" v-if="currentContent">
-      <div class="left-panel">
-        <div class="text-display">
-          {{ currentContent.description }}
-        </div>
-        <div class="pdf-display">
-          <PDFViewer
-              page-scale="page-height"
-              width="100%"
-              :height="700"
-              theme="dark"
-              :src="currentContent.pdfUrl"/>
-        </div>
+      <div class="top-panel">
+        <content-renderer :content="currentContent.description+'[PDF文件-附件]('+currentContent.pdfUrl+')'"/>
       </div>
 
-      <div class="right-panel">
-        <div class="comments">
-          <div v-for="comment in currentContent.comments"
-               :key="comment.id"
-               class="comment-item">
+      <div class="bottom-panel">
+        <div v-for="comment in currentContent.comments"
+             :key="comment.id"
+             class="comment-item">
+          <div class="content-head">
+            <el-avatar :icon="UserFilled"/>
             <div class="font-bold">{{ comment.user }}</div>
-            <div class="text-gray-600">{{ comment.content }}</div>
             <div class="text-sm text-gray-400">{{ comment.time }}</div>
           </div>
+          <ContentRenderer :content="comment.content"/>
         </div>
       </div>
-    </div>
-    <div v-else class="flex items-center justify-center w-full">
-      <el-spinner size="large" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, getCurrentInstance } from 'vue'
-import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
-import PDFViewer from './PDFViewer.vue'
+import {ref, reactive, getCurrentInstance} from 'vue'
+import {ArrowLeft, ArrowRight, UserFilled} from '@element-plus/icons-vue'
+import 'mavon-editor/dist/css/index.css'
+import ContentRenderer from "@/components/discussion/ContentRenderer.vue";
 
 interface Comment {
   id: number
@@ -200,52 +189,28 @@ fetchTags()
   color: #1890ff;
 }
 
-.text-display {
-  padding: 16px;
-  min-height: 60px;
-}
-
-.comments {
-  background-color: white;
-  border-radius: 0.375rem;
-  padding: 1rem;
-  height: 100%;
-  overflow-y: auto;
-}
 
 /* Main Content Area */
 .main-content {
-  display: flex;
+  display: table-column;
   flex: 1;
   color: black;
 }
 
-/* Left Panel (Text and PDF) */
-.left-panel {
-  margin-left: 1rem;
+.bottom-panel,
+.top-panel {
   background: white;
   width: 100%;
-  display: flex;
-  flex-direction: column;
   gap: 1rem;
   padding: 1rem;
   border: 2px solid white;
   border-radius: 0.375rem;
+  margin: 1rem;
 }
 
-
-/* Right Panel (Comments) */
-.right-panel {
-  width: 50%;
-  padding: 1rem;
-  overflow-y: auto;
-}
-
-.comments {
-  background-color: white;
-  border-radius: 0.375rem;
-  padding: 1rem;
-  height: 100%;
+.content-head {
+  display: flex;
+  direction: ltr;
 }
 
 .comment-item {
