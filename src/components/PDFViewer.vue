@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
   src: '',
   width: '100%',
   height: '100%',
-  pageScale: 'page-height',
+  pageScale: 'page-width',
   theme: 'light',
   fileName: ''
 })
