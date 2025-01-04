@@ -17,8 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
   src: '',
   width: '100%',
   height: '100%',
-  pageScale: 'page-fit', // 默认自适应展示一页
-  // pageNumber: 1,
+  pageScale: 'page-width',
   theme: 'light',
   fileName: ''
 })

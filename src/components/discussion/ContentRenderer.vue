@@ -12,19 +12,18 @@
           <span class="pdf-icon">
             <el-icon><Document/></el-icon>
           </span>
-          <a :href="item.url"
-             target="_blank"
-             class="pdf-link"
-             :title="item.name">
+          <span
+              class="pdf-link"
+              :title="item.name">
             {{ item.name }}
-          </a>
+          </span>
         </div>
 
         <!-- PDFViewer 仅在点击预览时显示 -->
         <div v-if="pdfStates[index] && pdfStates[index].rendered">
           <PDFViewer
               page-scale="page-fit"
-              :width="800"
+              width="100%"
               :height="700"
               theme="dark"
               :src="item.url"/>
@@ -56,7 +55,7 @@
         </el-button>
       </div>
 
-      <span v-else>{{ item.text }}</span>
+      <span v-else :style="{ whiteSpace: 'pre-line' }">{{ item.text }}</span>
     </template>
 
     <!-- 图片预览弹窗 -->
@@ -69,6 +68,7 @@
     </el-dialog>
   </div>
 </template>
+
 
 <script setup lang="ts">
 import {ref, computed} from 'vue';
@@ -208,19 +208,8 @@ const togglePdfViewer = (index: number) => {
 }
 
 .pdf-link {
-  color: #409eff;
   text-decoration: none;
   word-break: break-all;
-}
-
-.pdf-link:hover {
-  text-decoration: underline;
-}
-
-.pdf-viewer {
-  margin-top: 12px;
-  max-height: 500px;
-  overflow-y: auto;
 }
 
 .pdf-loading,

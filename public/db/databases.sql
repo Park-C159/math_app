@@ -503,6 +503,40 @@ CREATE TABLE IF NOT EXISTS links (
     FOREIGN KEY (target) REFERENCES nodes(id)
 );
 
+DROP TABLE IF EXISTS topics;
+CREATE TABLE topics (
+    id INT AUTO_INCREMENT PRIMARY KEY,      -- 话题ID，自增主键
+    tag VARCHAR(255) NOT NULL,              -- 话题标题
+    content TEXT,                           -- 话题内容
+    pdf_url VARCHAR(500)                    -- PDF文件URL
+);
+
+DROP TABLE IF EXISTS topic_comment;
+CREATE TABLE topic_comment (
+    id INT AUTO_INCREMENT PRIMARY KEY,      -- 评论ID，自增主键
+    topic_id INT NOT NULL,                  -- 关联的话题ID，与 topics.id 保持一致
+    user VARCHAR(100) NOT NULL,             -- 用户名
+    content TEXT NOT NULL,                  -- 评论内容
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 创建时间，默认为当前时间
+    FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
+);
+
+INSERT INTO topics (id, tag, content, pdf_url) VALUES
+(1, '数理逻辑与集合论', '关于数理逻辑与集合论的详细内容介绍。', 'https://cdn.jsdelivr.net/gh/themusecatcher/resources@0.0.3/Markdown.pdf'),
+(2, '哈密尔顿回路有关问题讨论', '对哈密尔顿回路问题进行深入研究与讨论。', 'https://zuopengd.github.io/vue-pdf3/dist/欢迎使用WPS Office for Mac同步文件夹.pdf'),
+(3, '标签3', '这是关于标签3的内容描述。', NULL);
+
+INSERT INTO topic_comment (id, topic_id, user, content, created_at) VALUES
+(1, 1, '李四', '内容讲解得非常详细，受益匪浅。', '2024-12-15 12:23:43'),
+(2, 1, '孙七', '这篇内容与我的研究方向非常相关，非常感谢！', '2024-12-17 12:23:43'),
+(3, 2, '李四', '内容讲解得非常详细，受益匪浅。', '2024-12-10 12:23:43'),
+(4, 2, '孙七', '内容讲解得非常详细，受益匪浅。', '2024-12-18 12:23:43'),
+(5, 2, '赵六', '我认为这一部分可以再补充一些实例。', '2024-12-13 12:23:43'),
+(6, 3, '赵六', '内容讲解得非常详细，受益匪浅。', '2024-12-21 12:23:43'),
+(7, 3, '王五', '我认为这一部分可以再补充一些实例。', '2024-12-16 12:23:43');
+
+
+
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS sessions;
 

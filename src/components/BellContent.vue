@@ -1,10 +1,9 @@
 <template>
   <div class="flex h-screen">
     <!-- Left Sidebar -->
-    <div :class="['transition-all duration-300 bg-gray-100 border-r',
-      isCollapsed ? 'w-12' : 'w-64']">
+    <div class="tags-container" :class="{ 'collapsed': isCollapsed }">
       <div class="sidebar-header">
-        <span v-show="!isCollapsed">话题标签</span>
+        <span v-show="!isCollapsed" class="title-text">话题标签</span>
         <el-button type="text" @click="toggleSidebar">
           <el-icon>
             <ArrowLeft v-if="!isCollapsed"/>
@@ -12,46 +11,36 @@
           </el-icon>
         </el-button>
       </div>
-      <div class="sidebar-content">
-        <div v-show="!isCollapsed" class="tags">
+      <div class="sidebar-content" v-show="!isCollapsed">
+        <div class="tags">
           <el-tag
               v-for="tag in tags"
-              :key="tag"
-              class="cursor-pointer"
+              :key="tag.id"
+              class="tag-button"
+              :class="{ 'active': selectedTagId === tag.id }"
               @click="selectTag(tag)">
-            {{ tag }}
+            {{ tag.name }}
           </el-tag>
         </div>
       </div>
     </div>
 
     <!-- Main Content -->
-    <div class="main-content">
-      <!-- Left Panel (Text and PDF) -->
-      <div class="left-panel">
-        <!-- Text Display Area -->
-        <div class="text-display">
-          请同学们阅读下面的PDF文件并写出自己的心得。
-        </div>
-        <div>
-          <PDFViewer
-              page-scale="page-fit"
-              :width="800"
-              :height="700"
-              theme="dark"
-              :src="PDFSrc"
-              @loaded="onLoaded"/>
-        </div>
+    <div class="main-content" v-if="currentContent">
+      <div class="top-panel">
+        <content-renderer :content="currentContent.description+'[PDF文件-附件]('+currentContent.pdfUrl+')'"/>
       </div>
 
-      <!-- Right Panel (Comments) -->
-      <div class="right-panel">
-        <div class="comments">
-          <div v-for="comment in comments" :key="comment.id" class="comment-item">
+      <div class="bottom-panel">
+        <div v-for="comment in currentContent.comments"
+             :key="comment.id"
+             class="comment-item">
+          <div class="content-head">
+            <el-avatar :icon="UserFilled"/>
             <div class="font-bold">{{ comment.user }}</div>
-            <div class="text-gray-600">{{ comment.content }}</div>
             <div class="text-sm text-gray-400">{{ comment.time }}</div>
           </div>
+          <ContentRenderer :content="comment.content"/>
         </div>
       </div>
     </div>
@@ -59,46 +48,73 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue'
-import {ArrowLeft, ArrowRight} from '@element-plus/icons-vue'
-import PDFViewer from './PDFViewer.vue'
+import {ref, reactive, getCurrentInstance} from 'vue'
+import {ArrowLeft, ArrowRight, UserFilled} from '@element-plus/icons-vue'
+import 'mavon-editor/dist/css/index.css'
+import ContentRenderer from "@/components/discussion/ContentRenderer.vue";
 
-const isCollapsed = ref(false)
-const tags = ref(['标签1', '标签2', '标签3'])
-const PDFSrc = ref('https://cdn.jsdelivr.net/gh/themusecatcher/resources@0.0.3/Markdown.pdf')
-
-function onLoaded (pdfApp: any) {
-  console.log('loaded app:', pdfApp)
+interface Comment {
+  id: number
+  user: string
+  content: string
+  time: string
 }
 
-const comments = ref([
-  {
-    id: 1,
-    user: '张三',
-    content: '这份课件内容很详细，对我理解知识点很有帮助。',
-    time: '2024-01-01 10:30'
-  },
-  {
-    id: 2,
-    user: '李四',
-    content: '我觉得第三章节的案例分析特别精彩。',
-    time: '2024-01-01 11:15'
-  },
-  {
-    id: 3,
-    user: '王五',
-    content: '希望能多一些实践练习的内容。',
-    time: '2024-01-01 14:20'
-  }
-])
+interface TagContent {
+  description: string
+  pdfUrl: string
+  comments: Comment[]
+}
+
+interface Tag {
+  id: number
+  name: string
+}
+
+const instance = getCurrentInstance();
+const proxy = instance?.proxy;
+const isCollapsed = ref(true)
+const selectedTagId = ref<number | null>(null)
+const tags = ref<Tag[]>([])
+const tagContents = reactive<Record<number, TagContent>>({})
+const currentContent = ref<TagContent | null>(null)
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
 }
 
-const selectTag = (tag: string) => {
-  // 处理标签选择逻辑
+const fetchTags = async () => {
+  try {
+    const response: any = await proxy?.$http.get('/tags')
+    tags.value = response.data
+    if (tags.value.length > 0) {
+      await selectTag(tags.value[0])
+    }
+  } catch (error) {
+    console.error('Error fetching tags:', error)
+  }
 }
+
+const fetchTagContent = async (tagId: number) => {
+  try {
+    const response: any = await proxy?.$http.get(`/topics/${tagId}`)
+    tagContents[tagId] = response.data[tagId]
+    currentContent.value = tagContents[tagId]
+  } catch (error: any) {
+    console.error(`Error fetching content for tag ${tagId}:`, error)
+  }
+}
+
+const selectTag = async (tag: Tag) => {
+  selectedTagId.value = tag.id
+  if (!tagContents[tag.id]) {
+    await fetchTagContent(tag.id)
+  } else {
+    currentContent.value = tagContents[tag.id]
+  }
+}
+
+fetchTags()
 </script>
 
 <style scoped>
@@ -112,17 +128,40 @@ const selectTag = (tag: string) => {
 }
 
 /* Left Sidebar Styles */
+.tags-container {
+  border: 2px solid white;
+  border-radius: 0.375rem;
+  background: white;
+  transition: all 0.3s ease;
+  width: 300px;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.tags-container.collapsed {
+  background: transparent;
+  border-color: transparent;
+  width: 50px;
+}
+
+
 .sidebar-header {
   padding: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.title-text {
+  transition: opacity 0.2s ease;
+  color: black;
 }
 
 .sidebar-content {
-  height: calc(100% - 4rem);
-  overflow-y: auto;
+  transition: opacity 0.3s ease;
+  opacity: 1;
 }
 
 .tags {
@@ -130,54 +169,48 @@ const selectTag = (tag: string) => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  white-space: nowrap;
 }
+
+.tag-button {
+  width: 100%;
+  text-align: left;
+  white-space: normal !important;
+  height: auto !important;
+  padding: 8px 12px !important;
+  margin-bottom: 8px;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.tag-button.active {
+  background-color: #e6f7ff;
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
 
 /* Main Content Area */
 .main-content {
-  display: flex;
+  display: table-column;
   flex: 1;
   color: black;
 }
 
-/* Left Panel (Text and PDF) */
-.left-panel {
+.bottom-panel,
+.top-panel {
+  background: white;
   width: 100%;
-  display: flex;
-  flex-direction: column;
   gap: 1rem;
   padding: 1rem;
-}
-
-.text-display {
-  overflow-y: auto;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.content {
-  background-color: white;
+  border: 2px solid white;
   border-radius: 0.375rem;
-  padding: 1rem;
-  height: 100%;
+  margin: 1rem;
 }
 
-/* PDF Iframe */
-.pdf-frame {
-  width: 100%;
-  height: 100%;
-}
-
-/* Right Panel (Comments) */
-.right-panel {
-  width: 50%;
-  padding: 1rem;
-  overflow-y: auto;
-}
-
-.comments {
-  background-color: white;
-  border-radius: 0.375rem;
-  padding: 1rem;
-  height: 100%;
+.content-head {
+  display: flex;
+  direction: ltr;
 }
 
 .comment-item {
@@ -189,10 +222,5 @@ const selectTag = (tag: string) => {
 
 .comment-item .font-bold {
   margin-bottom: 0.25rem;
-}
-
-/* Sidebar Collapse Animation */
-.transition-all {
-  transition: all 0.3s ease;
 }
 </style>
