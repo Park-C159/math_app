@@ -503,3 +503,23 @@ CREATE TABLE IF NOT EXISTS links (
     FOREIGN KEY (target) REFERENCES nodes(id)
 );
 
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS sessions;
+
+CREATE TABLE IF NOT EXISTS sessions (
+    session_id CHAR(36) PRIMARY KEY,  -- 使用UUID作为会话ID
+    user_id INT,                      -- 外键关联到用户表
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    session_id CHAR(36),  -- 外键关联到会话表
+    user_id INT,          -- 外键关联到用户表
+    message TEXT NOT NULL,
+    message_type ENUM('user', 'assistant') NOT NULL,  -- 消息类别：用户消息或生成结果
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,   -- 消息的时间戳
+    FOREIGN KEY (session_id) REFERENCES sessions(session_id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
