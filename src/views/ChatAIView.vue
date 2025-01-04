@@ -34,10 +34,10 @@ export default {
   data() {
     return {
       message: "",
-      messages: ["你好，我是数学小助手，请问有什么可以帮助你的吗？","user1","assistant1","user2","assistant2"],
+      messages: ["你好，我是数学小助手，请问有什么可以帮助你的吗？"],
       count: 1,
       isGenerating: false,
-      sessionId: "29b2fbac-1337-4e5e-ae93-ea38e08bd9aa",
+      sessionId: "",
     };
   },
   mounted() {
