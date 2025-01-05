@@ -7,11 +7,6 @@ import {getCurrentInstance} from 'vue'
 const instance = getCurrentInstance()
 const proxy = instance?.proxy
 
-const props = defineProps<{
-  // 是否显示上传进度
-  showProgress?: boolean
-}>()
-
 const emit = defineEmits<{
   'upload-success': [content: string]
 }>()
@@ -20,10 +15,6 @@ const emit = defineEmits<{
 const FILE_SIZE_LIMIT = 20 // 20MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp']
 const ALLOWED_PDF_TYPE = 'application/pdf'
-
-// 状态管理
-const loading = ref(false)
-const uploadProgress = ref(0)
 
 // 文件类型检查
 const beforeUpload = (file: File) => {
@@ -74,8 +65,6 @@ const generateInsertContent = (url: string, fileType: string, fileName: string) 
 // 自定义上传方法
 const customUpload = async (options: UploadRequestOptions) => {
   const file = options.file
-  loading.value = true
-  uploadProgress.value = 0
 
   try {
     const formData = new FormData()
@@ -113,9 +102,6 @@ const customUpload = async (options: UploadRequestOptions) => {
       message: error instanceof Error ? error.message : '服务器错误，请联系管理员'
     })
     options.onError?.(error)
-  } finally {
-    loading.value = false
-    uploadProgress.value = 0
   }
 }
 </script>
@@ -130,14 +116,7 @@ const customUpload = async (options: UploadRequestOptions) => {
       accept=".jpg,.jpeg,.png,.gif,.webp,.pdf"
   >
     <template #trigger>
-      <el-button :loading="loading" icon="Upload" plain>
-        <template v-if="showProgress && loading">
-          上传中 {{ uploadProgress }}%
-        </template>
-        <template v-else>
-          上传
-        </template>
-      </el-button>
+      <el-button icon="Upload" plain/>
     </template>
   </el-upload>
 </template>
