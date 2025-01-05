@@ -19,37 +19,53 @@
     >
       {{ roleText }}
     </span>
-    <el-avatar :icon="UserFilled"/>
+    <div
+        class="avatar-text"
+        :style="{
+        width: 'var(--el-avatar-size, 40px)',
+        height: 'var(--el-avatar-size, 40px)',
+        borderRadius: '50%',
+        backgroundColor: '#e5e5e5',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontSize: 'calc(var(--el-avatar-size, 40px) / 2)',
+        color: '#333'
+      }"
+    >
+      {{ avatarText }}
+    </div>
   </div>
 </template>
 
 <script>
-import {defineComponent, computed} from 'vue';
-import {UserFilled} from '@element-plus/icons-vue'; // Assuming you are using Element Plus
+import {defineComponent} from 'vue';
 
 export default defineComponent({
   name: 'AvatarWithRole',
   props: {
     // Expecting a 'replier_role' prop to define the role of the user
-    replierRole: {
+    Role: {
+      type: String,
+      required: true
+    },
+    userName: {
       type: String,
       required: true
     }
   },
-  components: {
-    UserFilled
-  },
   computed: {
-    UserFilled() {
-      return UserFilled
-    },
     // Compute the role color based on the role
     roleColor() {
-      return this.getRoleColor(this.replierRole);
+      return this.getRoleColor(this.Role);
     },
     // Compute the role text to be displayed in the circle
     roleText() {
-      return this.getRoleText(this.replierRole);
+      return this.getRoleText(this.Role);
+    },
+    // Extract the first letter or character from userName
+    avatarText() {
+      return this.userName.charAt(0);
     }
   },
   methods: {
@@ -69,7 +85,7 @@ export default defineComponent({
         teacher: '师',
         student: '学'
       };
-      return roleTexts[role] || 'student';
+      return roleTexts[role] || '学';
     }
   }
 });
@@ -94,5 +110,12 @@ export default defineComponent({
   text-align: center;
   border-radius: 50%;
   z-index: 1;
+}
+
+.avatar-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-transform: uppercase;
 }
 </style>
