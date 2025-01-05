@@ -20,7 +20,6 @@ const props = withDefaults(defineProps<Props>(), {
     <div class="editor-buttons-left">
       <EmojiPicker @select="(emoji) => props.onEmojiSelect?.(emoji)"/>
       <FileUploader
-          :show-progress="true"
           @upload-success="(content) => props.onFileUpload?.(content)"
       />
     </div>
