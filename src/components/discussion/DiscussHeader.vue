@@ -6,6 +6,7 @@ const timeFilterText = ref('所有时间');
 const authorFilterText = ref('全部帖子');
 const props = defineProps<{
   input: string
+  buttonText: string
 }>();
 
 const emit = defineEmits<{
@@ -56,7 +57,7 @@ const handleAuthorFilterClick = (filter: string) => {
           plain
           @click="handleCreateDiscussion"
       >
-        发起讨论
+        {{ props.buttonText}}
       </el-button>
     </div>
     <div class="filter">
