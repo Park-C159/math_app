@@ -169,7 +169,7 @@ watch(() => route.query.courseId, (newCourseId) => {
           <DiscussContent courseName="数理逻辑"/>
         </div>
         <div v-else-if="ContentID === 3">
-          <BellContent/>
+          <BellContent courseName="数理逻辑"/>
         </div>
         <div v-else-if="ContentID === 4">
           <p>成绩内容</p>
