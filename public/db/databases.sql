@@ -363,7 +363,8 @@ DROP TABLE IF EXISTS user_like_comment;
 CREATE TABLE discussions
 (
     id               INT AUTO_INCREMENT PRIMARY KEY,
-    course_id        INT  NOT NULL,
+    course_id        INT,
+    topic_id         INT,
     author_id        INT  NOT NULL,
     `like`           INT       DEFAULT 0,
     content          TEXT NOT NULL,
@@ -371,6 +372,7 @@ CREATE TABLE discussions
     created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (course_id) REFERENCES course (id),
+    FOREIGN KEY (topic_id) REFERENCES topics (id),
     FOREIGN KEY (author_id) REFERENCES users (id),
 
     INDEX idx_course_id (course_id),
@@ -522,18 +524,6 @@ CREATE TABLE topics
     FOREIGN KEY (user_id) REFERENCES users (id)     -- 外键关联到用户表
 );
 
--- 修改 topic_comment 表，将 user 字段改为 user_id，并且外键关联到 users 表
-DROP TABLE IF EXISTS topic_comment;
-CREATE TABLE topic_comment
-(
-    id         INT AUTO_INCREMENT PRIMARY KEY,                       -- 评论ID，自增主键
-    topic_id   INT  NOT NULL,                                        -- 关联的话题ID，与 topics.id 保持一致
-    user_id    INT  NOT NULL,                                        -- 用户ID，关联到 users.id
-    content    TEXT NOT NULL,                                        -- 评论内容
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                  -- 创建时间，默认为当前时间
-    FOREIGN KEY (topic_id) REFERENCES topics (id) ON DELETE CASCADE, -- 外键关联到话题表
-    FOREIGN KEY (user_id) REFERENCES users (id)                      -- 外键关联到用户表
-);
 
 -- 插入数据到 topics 表，包括新添加的字段
 INSERT INTO topics (id, tag, content, pdf_url, course_id, user_id, start_time, end_time)
@@ -544,16 +534,6 @@ VALUES (1, '数理逻辑与集合论', '关于数理逻辑与集合论的详细�
         'https://zuopengd.github.io/vue-pdf3/dist/欢迎使用WPS Office for Mac同步文件夹.pdf', 1, 25,
         '2024-01-01 10:00:00', '2024-12-31 23:59:59'),
        (3, '标签3', '这是关于标签3的内容描述。', NULL, 1, 25, '2024-01-01 10:00:00', NULL);
-
--- 插入数据到 topic_comment 表，包括 user_id 字段
-INSERT INTO topic_comment (id, topic_id, user_id, content, created_at)
-VALUES (1, 1, 13, '内容讲解得非常详细，受益匪浅。', '2024-12-15 12:23:43'),
-       (2, 1, 14, '这篇内容与我的研究方向非常相关，非常感谢！', '2024-12-17 12:23:43'),
-       (3, 2, 15, '内容讲解得非常详细，受益匪浅。', '2024-12-10 12:23:43'),
-       (4, 2, 16, '内容讲解得非常详细，受益匪浅。', '2024-12-18 12:23:43'),
-       (5, 2, 17, '我认为这一部分可以再补充一些实例。', '2024-12-13 12:23:43'),
-       (6, 3, 18, '内容讲解得非常详细，受益匪浅。', '2024-12-21 12:23:43'),
-       (7, 3, 19, '我认为这一部分可以再补充一些实例。', '2024-12-16 12:23:43');
 
 
 DROP TABLE IF EXISTS messages;
