@@ -93,7 +93,8 @@ const getDiscussContent = async (page = 1) => {
         search: input.value,
         time_filter: timeFilter.value,
         author_filter: authorFilter.value,
-        user_id: userId
+        user_id: userId,
+        type: 'course'
       },
     });
 
@@ -257,7 +258,8 @@ const submitDiscussion = async () => {
       const response = await proxy?.$http.post("/submit_discussion", {
         user_id: user.id,
         course_name: props.courseName,
-        content: content
+        content: content,
+        type: 'course'
       });
 
       if (response?.data?.message === "讨论创建成功") {
