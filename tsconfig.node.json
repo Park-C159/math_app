@@ -1,19 +1,9 @@
 {
   "extends": "@tsconfig/node20/tsconfig.json",
-  "include": [
-    "vite.config.*",
-    "vitest.config.*",
-    "cypress.config.*",
-    "nightwatch.conf.*",
-    "playwright.config.*"
-  ],
   "compilerOptions": {
-    "composite": true,
-    "noEmit": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "types": ["node"]
+    "module": "CommonJS",  // Node.js 环境通常使用 CommonJS 模块
+    "moduleResolution": "node",
+    "types": ["node"],  // 只需要 Node.js 类型
+    "target": "ES2020"
   }
 }

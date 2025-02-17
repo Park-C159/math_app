@@ -1,18 +1,14 @@
 {
   "files": [],
   "references": [
-    {
-      "path": "./tsconfig.node.json"
-    },
-    {
-      "path": "./tsconfig.app.json"
-    }
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.app.json" }
   ],
-//  "compilerOptions": {
-//    "types": ["node"],
-//    "module": "ESNext",  // Vue 默认使用 ESNext 模块化语法
-//    "moduleResolution": "node",
-//    "target": "ES6",
-//    // 其他 TypeScript 配置
-//  }
+  "compilerOptions": {
+    "allowJs": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  }
 }

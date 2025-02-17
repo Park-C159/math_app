@@ -21,7 +21,7 @@ const props = defineProps({
 // 剩余时间（秒）
 const remainingTime = ref(0);
 // 定时器 ID
-let timer: NodeJS.Timeout | null = null;
+let timer: NodeJS.Timer | null = null;
 
 // 将传入的 ISO 格式时间转换为 Date 对象
 const endDate = computed(() => new Date(props.endTime));

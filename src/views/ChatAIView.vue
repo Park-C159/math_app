@@ -60,7 +60,6 @@ export default {
       }
     });
 
-    this.saveMessageToDB();
   },
   methods: {
     sendMessage() {

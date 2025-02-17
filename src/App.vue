@@ -17,9 +17,9 @@ const toChat = ()=>{
     <div class="header-top"></div>
     <HeaderComponent/>
   </header>
-  <div class="helper" @click="toChat"  v-if="route.path !== '/chat_ai'">
-    <img width="100%" src="@/assets/images/robot_black.svg" alt="数学小助手">
-  </div>
+<!--  <div class="helper" @click="toChat"  v-if="route.path !== '/chat_ai'">-->
+<!--    <img width="100%" src="@/assets/images/robot_black.svg" alt="数学小助手">-->
+<!--  </div>-->
   <RouterView/>
   <FooterComponent/>
 </template>

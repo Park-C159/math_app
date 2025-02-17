@@ -26,7 +26,7 @@ const getExamMark = () => {
     params: {
       exam_id: route.query.exam_id
     }
-  }).then((res) => {
+  }).then((res:any) => {
     let response = res.data;
     if (response.code === 200) {
       userScore.value = response.data;
