@@ -30,7 +30,7 @@ const getExamMark = () => {
   }).then((res:any) => {
     let response = res.data;
     if (response.code === 200) {
-      userScore.value = response.data;
+      userScore.value = response.data.user_scores;
     }
   });
 };

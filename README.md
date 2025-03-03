@@ -155,6 +155,102 @@ npm run build
 ]
 ```
 
+2. /api/download_users_mark - 获取课程结构
+
+**描述**: 每道题的统计信息 question_statistics
+
+- average_score（均值） 
+- median_score（中位数） 
+- mode_score（众数） 
+- standard_deviation（标准差） 
+- variance（方差） 
+- range（极差） 
+- q1（第 25% 分位数） 
+- q3（第 75% 分位数） 
+- iqr（四分位距 Q3-Q1） 
+- coefficient_of_variation（变异系数 CV） 
+- skewness（偏度） 
+- kurtosis（峰度）
+✅ 所有用户总分的统计信息 total_statistics
+
+- average_total_score
+- median_total_score
+- mode_total_score
+- standard_deviation_total_score
+- variance_total_score
+- range_total_score
+- q1_total_score
+- q3_total_score
+- iqr_total_score
+- coefficient_of_variation
+- skewness_total_score 
+- kurtosis_total_score 
+- 
+**方法**: `GET`  
+**响应**:返回课程结构的树状 JSON 对象
+
+**示例**:
+```json
+{
+  "user_scores": [
+    {
+      "user_id": 1,
+      "user_name": "张三",
+      "question_score": [
+        {
+          "question_id": 101,
+          "question_text": "选择题1",
+          "user_score": 5
+        },
+        {
+          "question_id": 102,
+          "question_text": "选择题2",
+          "user_score": 10
+        }
+      ],
+      "total_score": 15
+    }
+  ],
+  "question_statistics": [
+    {
+      "question_id": 101,
+      "question_text": "选择题1",
+      "average_score": 6.5,
+      "median_score": 6,
+      "mode_score": 5,
+      "standard_deviation": 2.3,
+      "variance": 5.29,
+      "range": 4,
+      "q1": 5,
+      "q3": 8,
+      "iqr": 3,
+      "coefficient_of_variation": 35.4,
+      "skewness": 0.12,
+      "kurtosis": -1.0
+    }
+  ],
+  "total_statistics": {
+    "average_total_score": 75,
+    "median_total_score": 72,
+    "mode_total_score": "无众数",
+    "standard_deviation_total_score": 15.2,
+    "variance_total_score": 231.04,
+    "range_total_score": 50,
+    "q1_total_score": 65,
+    "q3_total_score": 85,
+    "iqr_total_score": 20,
+    "coefficient_of_variation": 20.3,
+    "skewness_total_score": 0.4,
+    "kurtosis_total_score": -0.9
+  }
+}
+
+```
+
+
+
+
+
 ## 设计思路
 
 1. 需要一个主界面
