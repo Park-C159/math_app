@@ -5,7 +5,17 @@ import BellContent from "@/components/BellContent.vue";
 import {ref, getCurrentInstance, onMounted, watch} from 'vue';
 import {UserFilled, Calendar, Location, Document, Setting} from '@element-plus/icons-vue';
 import {useRoute, useRouter} from "vue-router";
+import TeacherMark from "@/components/mark/TeacherMark.vue";
+import StudentMark from "@/components/mark/StudentMark.vue";
 
+interface UserInfoInterface {
+  extra: string;         // 额外信息，可以为空字符串
+  id: number;            // 用户ID
+  phone_number: string;  // 用户的手机号
+  role: string; // 用户角色，可以是 'admin' 或 'user'
+  user_id: string;       // 用户唯一标识符
+  username: string;      // 用户名
+}
 
 // 获取 Vue 实例
 const instance = getCurrentInstance();
@@ -14,6 +24,8 @@ const route = useRoute()
 const router = useRouter()
 
 const CourseId = ref(route.query.courseId)
+const userInfo = ref<UserInfoInterface>();
+const userLevel = ref("")
 const isExpanded = ref(false);
 let ContentID = ref(1);
 const CourseInfo = ref({
@@ -30,7 +42,7 @@ const getCourseInfo = () => {
     params: {
       name: route.query.courseName
     }
-  }).then((res) => {
+  }).then((res: any) => {
     CourseInfo.value = {
       id: res.data.id,
       name: res.data.name,
@@ -39,7 +51,7 @@ const getCourseInfo = () => {
       end_time: res.data.end_time,
       intro: res.data.intro
     };
-  }).catch((err) => {
+  }).catch((err: error) => {
     console.error(err);
   })
 }
@@ -87,6 +99,13 @@ const testCenter = () => {
 
 onMounted(() => {
   getCourseInfo();
+
+  let user_info = localStorage.getItem('userInfo');
+  if (user_info) {
+    userInfo.value = JSON.parse(user_info) as UserInfoInterface;
+    userLevel.value = userInfo.value.role;
+  }
+
 })
 
 // 监听路由变化
@@ -172,7 +191,12 @@ watch(() => route.query.courseId, (newCourseId) => {
           <BellContent courseName="数理逻辑"/>
         </div>
         <div v-else-if="ContentID === 4">
-          <p>成绩内容</p>
+          <div v-if="userLevel=='teacher' || userLevel == 'admin'">
+            <TeacherMark />
+          </div>
+          <div v-else>
+            <StudentMark />
+          </div>
         </div>
       </el-main>
     </el-container>

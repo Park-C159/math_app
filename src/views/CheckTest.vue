@@ -94,7 +94,7 @@ const getQuestions = (user_id: number) => {
       user_id: user_id,
       exam_id: route.query.exam_id,
     }
-  }).then((res) => {
+  }).then((res: any) => {
     let response = res.data
 
     if (response.code === 200) {
@@ -119,7 +119,6 @@ const getQuestions = (user_id: number) => {
             }
           }
         } else {
-
           if (data.type === 'proof') {
             correctAnswer = formatAndParseAnswer(correctAnswer as string) // correct_answer可能是string或string[]
           }
@@ -137,7 +136,7 @@ const getQuestions = (user_id: number) => {
         }
 
         // 将处理后的数据推送到问题数组中
-        if (data.type === 'proof') {
+        // if (data.type === 'proof') {
           question.push({
             id: data.id,
             question_text: data.question_text,
@@ -151,7 +150,7 @@ const getQuestions = (user_id: number) => {
             user_answer_flow: userAnswerFlow,
             file_list: fileList
           })
-        }
+        // }
       })
 
       // 更新到状态管理或其他地方
@@ -212,7 +211,7 @@ const handlePictureCardPreview = async (file: UploadFile) => {
   dialogImageUrl.value = file.url!
   currentFile.value = file
   dialogVisible.value = true
-  setTimeout(()=>{
+  setTimeout(() => {
     setupCanvas()
   }, 500)
 }
@@ -240,20 +239,20 @@ const uploadToBackend = (imageData: string) => {
   proxy?.$http.put('/upload', {
     image_name: currentFile.value.name,
     image: imageData
-  }).then(res => {
+  }).then((res: any) => {
     let response = res.data;
     if (response.code === 200) {
       ElMessage({
         type: 'success',
         message: response.msg
       })
-    }else{
+    } else {
       ElMessage({
         type: "warning",
         message: response.msg
       })
     }
-  }).catch(err=>{
+  }).catch((err: any) => {
     console.error(err)
     ElMessage({
       type: 'error',
@@ -428,6 +427,7 @@ onMounted(async () => {
             <span v-if="question.type === 'proof'" class="question-type">解答题</span>
             <span v-if="question.type === 'flow'" class="question-type">流程题</span>
             ：<span>（{{ question.score }}分）</span>
+            111
             <MathTextRenderer :raw-text="question.question_text"/>
           </div>
 

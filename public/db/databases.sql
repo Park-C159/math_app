@@ -32,8 +32,8 @@ VALUES ('数理逻辑', '王拥军', '2024-09-01', '2024-12-12',
         '本课程分为数理逻辑与集合论两部分，数理逻辑部分的核心在于用数学的方法研究逻辑，集合论部分的关键在于正确认识无限。',
         'sessionId=abc123; userId=xyz456');
 
--- INSERT INTO course (name, teacher, start_time, end_time, intro, period, credit, cookies) VALUES
--- ('高等数学', '张老师', '2024-03-01', '2024-06-30', '本课程旨在培养学生的数学思维和解决实际问题的能力。', '64', 4, '无'),
+INSERT INTO course (name, teacher, start_time, end_time, intro, period, credit, cookies) VALUES
+('高等代数', '王宝山', '2024-03-01', '2024-06-30', '本课程旨在培养学生的数学思维和解决实际问题的能力。', '64', 4, '无');
 -- ('计算机科学导论', '李教授', '2024-09-01', '2024-12-31', '介绍计算机科学的基本概念和原理。', '48', 3, '无'),
 -- ('英语', '王老师', '2024-03-01', '2024-06-30', '提高学生的英语听说读写能力。', '64', 2, '无'),
 -- ('物理', '赵博士', '2024-09-01', '2024-12-31', '探索物理世界的基本原理。', '48', 3, '无'),
@@ -141,9 +141,9 @@ DROP TABLE IF EXISTS users;
 CREATE TABLE users
 (
     id           INT AUTO_INCREMENT PRIMARY KEY,
-    username     VARCHAR(50)                          NOT NULL UNIQUE,
+    username     VARCHAR(50)                          ,
     password     VARCHAR(255)                         NOT NULL,
-    user_id      VARCHAR(50),
+    user_id      VARCHAR(50) NOT NULL UNIQUE,
     phone_number VARCHAR(15),
     role         ENUM ('admin', 'teacher', 'student') NOT NULL,
     gender       TINYINT,

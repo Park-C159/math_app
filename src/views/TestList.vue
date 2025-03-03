@@ -16,6 +16,7 @@ interface Exam {
   name: string;
   start_time: string;
 }
+
 interface UserInfoInterface {
   extra: string;         // 额外信息，可以为空字符串
   id: number;            // 用户ID
@@ -73,11 +74,11 @@ const toMarkCenter = (exam_id: number, exam_name: string) => {
   window.open(`${window.location.origin}/mark_center?exam_id=${exam_id}&exam_name=${exam_name}&course_id=${route.query.course_id}`, '_blank')
 }
 const deleteExam = (exam_id: number) => {
-  proxy?.$http.delete("exams",{
+  proxy?.$http.delete("exams", {
     params: {
       exam_id: exam_id,
     }
-  }).then((res) => {
+  }).then((res: any) => {
     let response = res.data;
     if (response.code === 200) {
       getExamList()
@@ -85,13 +86,13 @@ const deleteExam = (exam_id: number) => {
         type: 'success',
         message: response.msg
       })
-    }else{
+    } else {
       ElMessage({
         type: 'error',
         message: response.msg,
       })
     }
-  }).catch((err) => {
+  }).catch((err: any) => {
     console.error(err)
     ElMessage({
       type: 'error',
