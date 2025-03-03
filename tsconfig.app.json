@@ -5,10 +5,13 @@
   "compilerOptions": {
     "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "module": "ESNext",  // Vue 需要 ESNext 模块化
+    "moduleResolution": "node",  // 使用 Node.js 的模块解析方式
+    "types": ["node", "vue"],  // 包括 Node.js 和 Vue 的类型定义
+    "target": "ESNext"  // 编译目标为 ESNext
   }
 }

@@ -190,7 +190,7 @@ const postExam = () => {
   proxy?.$http.post("/user_answers", {
     exam_id: route.query.exam_id,
     user_answer: userAnswers
-  }).then((res) => {
+  }).then((res:any) => {
     let response = res.data
     if (response.code === 200) {
       ElMessage({
@@ -206,7 +206,7 @@ const postExam = () => {
     setTimeout(() => {
       window.close();
     }, 3000)
-  }).catch(err => {
+  }).catch((err:any) => {
     ElMessage({
       type: "error",
       message: "提交失败，请联系管理员！"

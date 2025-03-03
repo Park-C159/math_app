@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getCurrentInstance, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import MathTextRenderer from "@/components/MathTextRenderer.vue";
 
 const route = useRoute();
 const instance = getCurrentInstance();
@@ -26,7 +27,7 @@ const getExamMark = () => {
     params: {
       exam_id: route.query.exam_id
     }
-  }).then((res) => {
+  }).then((res:any) => {
     let response = res.data;
     if (response.code === 200) {
       userScore.value = response.data;
@@ -74,7 +75,7 @@ const downloadCSV = () => {
         <th>用户名</th>
         <th>学号</th>
         <th v-for="question in userScore[0]?.question_score" :key="question.question_id">
-          {{ question.question_text }}
+          <MathTextRenderer :raw-text="question.question_text" />
         </th>
         <th>总分</th>
       </tr>

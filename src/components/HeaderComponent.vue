@@ -18,7 +18,7 @@ const courseList = ref<Course[]>([])
 
 
 const getCourseName = () => {
-  proxy?.$http.get('/get_course_name').then((res) => {
+  proxy?.$http.get('/get_course_name').then((res:any) => {
     let response = res.data;
     if(response.code === 200){
       courseList.value = response.data;
@@ -30,7 +30,7 @@ const getCourseName = () => {
     }
     // courseNameList.value.length = 0;
     // courseNameList.value.push(...res.data)
-  }).catch((err) => {
+  }).catch((err:any) => {
     ElMessage({
       type: 'error',
       message: "服务其开小差了，请联系管理员！"
