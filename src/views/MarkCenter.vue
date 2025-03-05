@@ -11,6 +11,7 @@ interface QuestionScore {
   question_id: number;
   question_text: string;
   user_score: number;
+  question_type: string;
 }
 
 interface UserScore {

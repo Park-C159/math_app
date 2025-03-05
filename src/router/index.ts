@@ -19,6 +19,7 @@ import MarkCenter from "@/views/MarkCenter.vue";
 import UserManagement from "@/views/UserManagement.vue";
 import KnowledgeGraph from "@/views/KnowledgeGraph.vue";
 import ChatAIView from "@/views/ChatAIView.vue";
+import TestEchartComponent from "@/components/echarts/TestEchartComponent.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,6 +28,11 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView
+    },
+    {
+      path: '/testchart',
+      name: 'testchart',
+      component: TestEchartComponent
     },{
       path: '/truth',
       name: 'truth',

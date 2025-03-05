@@ -171,6 +171,7 @@ npm run build
 - coefficient_of_variation（变异系数 CV） 
 - skewness（偏度） 
 - kurtosis（峰度）
+
 ✅ 所有用户总分的统计信息 total_statistics
 
 - average_total_score
@@ -185,7 +186,7 @@ npm run build
 - coefficient_of_variation
 - skewness_total_score 
 - kurtosis_total_score 
-- 
+
 **方法**: `GET`  
 **响应**:返回课程结构的树状 JSON 对象
 
