@@ -3,6 +3,8 @@ import {getCurrentInstance, onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
 import MathTextRenderer from "@/components/MathTextRenderer.vue";
 import ChoicechartComponent from "@/components/echarts/ChoicechartComponent.vue";
+import FenbuchartComponent from "@/components/echarts/FenbuchartComponet.vue";
+import XiangxianComponent from "@/components/echarts/XiangxianComponent.vue";
 
 const route = useRoute();
 const instance = getCurrentInstance();
@@ -109,6 +111,7 @@ const getExamMark = () => {
       });
       // 将 Map 转换为数组
       questionScoreSummary.value = Array.from(questionMap.values());
+      console.log(questionScoreSummary.value);
     }
   });
 };
@@ -160,6 +163,19 @@ const downloadCSV = () => {
 
 <template>
   <div class="table">
+    <h2 style="margin: 20px">总分：</h2>
+    <div class="total">
+      <div v-if="totalScores.length>0" class="total-fenbu">
+        <FenbuchartComponent
+            title="成绩分布散点图"
+            type="scatter-line"
+            :seriesData="totalScores"
+        />
+      </div>
+
+    </div>
+
+
     <h2 style="margin: 20px">客观题：</h2>
     <table>
       <thead>
@@ -173,19 +189,33 @@ const downloadCSV = () => {
       </thead>
       <tbody>
       <tr>
-        <td v-for="answer in (questionScoreSummary || []).filter(s => s.question_type==='choice')" style="height: 200px;">
+        <td v-for="answer in (questionScoreSummary || []).filter(s => s.question_type==='choice')"
+            style="height: 200px;">
           <ChoicechartComponent
-            :seriesData="answer.user_answers"
+              :seriesData="answer.user_answers"
           />
         </td>
       </tr>
       </tbody>
     </table>
     <h2 style="margin: 20px">主观题：</h2>
-    <div v-for="qs in (questionScoreSummary || []).filter(s => s.question_type!=='choice')">
-      <MathTextRenderer :raw-text="qs.question_text" />
-      <div class="fenbu">
 
+    <div v-if="questionScoreSummary.length>0" class="total-fenbu">
+      <XiangxianComponent
+          title="主观题分布情况"
+          :seriesData="questionScoreSummary"
+      />
+
+    </div>
+
+    <div v-for="qs in (questionScoreSummary || []).filter(s => s.question_type!=='choice')">
+      <MathTextRenderer :raw-text="qs.question_text"/>
+      <div class="total-fenbu">
+        <FenbuchartComponent
+            title="成绩分布散点图"
+            type="scatter"
+            :seriesData="qs.user_scores"
+        />
       </div>
     </div>
 
@@ -194,6 +224,19 @@ const downloadCSV = () => {
 </template>
 
 <style scoped>
+.total{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.total-fenbu{
+  width: 100%;
+  height: 50vh;
+}
+.fenbu{
+  width: 45%;
+  height: 50vh;
+}
 .btn {
   float: right;
   margin: 1rem;

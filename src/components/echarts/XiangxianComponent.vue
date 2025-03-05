@@ -1,5 +1,5 @@
 <template>
-  <div ref="chart" style="width: 80vw; height: 80vh;"></div>
+  <div ref="chart" style="width: 100%; height: 100%;"></div>
 </template>
 
 <script>
@@ -51,7 +51,7 @@ export default {
   methods: {
     getChartOption() {
       let scores = []
-      this.data.forEach(item => {
+      this.seriesData.forEach(item => {
         if(item.question_type!=="choice")
           scores.push(item.user_scores)
       })
@@ -59,7 +59,7 @@ export default {
       return {
         title: [
           {
-            text: 'Michelson-Morley Experiment',
+            text: this.title,
             left: 'center'
           },
           {
