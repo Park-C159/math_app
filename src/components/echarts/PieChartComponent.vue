@@ -4,7 +4,7 @@
 
 <script>
 export default {
-  name: "EChartsComponent",
+  name: "PieChartsComponent",
   props: {
     type: {
       type: String,
@@ -12,7 +12,7 @@ export default {
     },
     title: {
       type: String,
-      default: "默认标题", // 图表标题
+      default: "", // 图表标题
     },
     xData: {
       type: Array,

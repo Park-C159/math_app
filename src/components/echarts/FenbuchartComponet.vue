@@ -4,11 +4,11 @@
 
 <script>
 export default {
-  name: "ChoicechartComponent",
+  name: "FenbuchartComponent",
   data(){
     return {
       data: [0,0,1,1,2,2,2,2,2,2,2,2,2,2,3,4,2,1,1,3,2,4,1,5,6,6,6,6,6,6,6]
-  }
+    }
   },
   props: {
     type: {
@@ -40,7 +40,7 @@ export default {
     });
   },
   methods: {
-    calculateFrequency(numbers){
+    calculateFrequency(numbers) {
       const frequency = {};
       numbers.forEach((number) => {
         frequency[number] = (frequency[number] || 0) + 1;
