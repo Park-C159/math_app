@@ -63,6 +63,7 @@ interface UserScore {
   total_score: number;
   user_id: string;
   user_name: string;
+  question_type: string;
 }
 
 const userScore = ref<UserScore[]>([]);
@@ -111,7 +112,7 @@ const getExamMark = () => {
       });
       // 将 Map 转换为数组
       questionScoreSummary.value = Array.from(questionMap.values());
-      console.log(questionScoreSummary.value);
+      console.log("questionScoreSummary",questionScoreSummary.value)
     }
   });
 };
