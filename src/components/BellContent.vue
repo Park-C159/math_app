@@ -3,6 +3,7 @@
   <DiscussHeader
       v-model:input="input"
       buttonText="参与讨论"
+      :buttonDisabled="!isTopicActive"
       @search="handleSearch"
       @create-discussion="handleCreateDiscussion"
       @time-filter-change="handleTimeFilterClick"
@@ -166,7 +167,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, getCurrentInstance, onUnmounted, watch} from 'vue'
+import {ref, getCurrentInstance, onUnmounted, watch, computed} from 'vue'
 import {ArrowLeft, ArrowRight} from '@element-plus/icons-vue'
 import 'mavon-editor/dist/css/index.css'
 import ContentRenderer from "@/components/discussion/ContentRenderer.vue"
@@ -208,6 +209,23 @@ const selectedTag = ref<Tag | null>(null);  // 存储当前选中的完整tag对
 const selectedTagId = ref<number | null>(null);  // 存储当前选中的tag ID
 const targetType = ref<string | null>(null);// 存储当前回复的回复类型
 const targetId = ref<number | null>(null); //记录回复评论的对象ID
+
+// Add this computed property to your script section
+const isTopicActive = computed(() => {
+  if (!selectedTag.value) return false;
+
+  const now = new Date();
+  const startTime = selectedTag.value.start_time ? new Date(selectedTag.value.start_time) : null;
+  const endTime = selectedTag.value.end_time ? new Date(selectedTag.value.end_time) : null;
+
+  if (startTime && endTime) {
+    return startTime <= now && now <= endTime;
+  } else if (startTime) {
+    return startTime <= now;
+  }
+
+  return false;
+});
 
 // 主评论插入emoji
 const insertMainEmoji = (emoji: any) => {
