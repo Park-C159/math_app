@@ -7,6 +7,7 @@ const authorFilterText = ref('全部帖子');
 const props = defineProps<{
   input: string
   buttonText: string
+  buttonDisabled?: boolean
 }>();
 
 const emit = defineEmits<{
@@ -55,6 +56,7 @@ const handleAuthorFilterClick = (filter: string) => {
           class="new_discussion-btn"
           color="rgb(173, 145, 255)"
           plain
+          :disabled="props.buttonDisabled"
           @click="handleCreateDiscussion"
       >
         {{ props.buttonText}}
