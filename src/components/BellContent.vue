@@ -4,10 +4,12 @@
       v-model:input="input"
       buttonText="参与讨论"
       :buttonDisabled="!isTopicActive"
+      :showManageButton="userInfo?.role === 'admin' || userInfo?.role === 'teacher'"
       @search="handleSearch"
       @create-discussion="handleCreateDiscussion"
       @time-filter-change="handleTimeFilterClick"
       @author-filter-change="handleAuthorFilterClick"
+      @manage-topics="handleManageTopics"
   />
   <!-- 编辑框（发言框） -->
   <div v-if="showEditor" class="editor-container">
@@ -21,7 +23,13 @@
         @cancel="() => { showEditor = false; discussionContent = ''; }"
     />
   </div>
-  <div class="flex h-screen">
+  <!-- 话题管理组件 -->
+  <TopicManager
+      ref="topicManagerRef"
+      :courseName="courseName"
+      @update="handleTopicUpdate"
+  />
+  <div class="flex main-container">
     <!-- Left Sidebar -->
     <div class="tags-container" :class="{ 'collapsed': isCollapsed }">
       <div class="sidebar-header">
@@ -65,7 +73,7 @@
               {{ dayjs(selectedTag.start_time).format("YYYY-MM-DD") }}
             </span>
           <div>
-            <ContentRenderer :content="selectedTag.content+'[PDF文件-附件]('+selectedTag.pdf_url+')'"/>
+            <ContentRenderer :content="formatTopicContent(selectedTag)"/>
           </div>
         </div>
       </div>
@@ -121,6 +129,7 @@
                         :is-liked="reply.isLiked"
                         :like-count="reply.like"
                         :index="index"
+                        :showReplyButton="isTopicActive"
                         @like="likeComment"
                         @reply="handleReplyClick"
                         @delete="deleteComment"
@@ -149,6 +158,7 @@
               :is-liked="discussion.isLiked"
               :like-count="discussion.like"
               :index="index"
+              :showReplyButton="isTopicActive"
               @like="likeComment"
               @reply="handleReplyClick"
               @delete="deleteComment"
@@ -167,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, getCurrentInstance, onUnmounted, watch, computed} from 'vue'
+import {ref, getCurrentInstance, onUnmounted, watch, computed, onMounted} from 'vue'
 import {ArrowLeft, ArrowRight} from '@element-plus/icons-vue'
 import 'mavon-editor/dist/css/index.css'
 import ContentRenderer from "@/components/discussion/ContentRenderer.vue"
@@ -179,6 +189,7 @@ import {ElMessage} from "element-plus";
 import DiscussHeader from "@/components/discussion/DiscussHeader.vue";
 import CommentActions from "@/components/CommentActions.vue";
 import CustomPagination from "@/components/discussion/CustomPagination.vue";
+import TopicManager from './discussion/TopicManager.vue'
 
 interface Tag {
   id: number
@@ -209,6 +220,8 @@ const selectedTag = ref<Tag | null>(null);  // 存储当前选中的完整tag对
 const selectedTagId = ref<number | null>(null);  // 存储当前选中的tag ID
 const targetType = ref<string | null>(null);// 存储当前回复的回复类型
 const targetId = ref<number | null>(null); //记录回复评论的对象ID
+const topicManagerRef = ref()
+const userInfo = ref<any>(null)
 
 // Add this computed property to your script section
 const isTopicActive = computed(() => {
@@ -226,6 +239,46 @@ const isTopicActive = computed(() => {
 
   return false;
 });
+
+const formatTopicContent = (tag) => {
+  if (!tag) return '';
+
+  // 如果有PDF链接，添加PDF文件链接到内容后面
+  if (tag.pdf_url && tag.pdf_url.trim()) {
+    return `${tag.content}\n\n[PDF文件-附件](${tag.pdf_url})`;
+  } else {
+    // 如果没有PDF链接，只返回内容
+    return tag.content;
+  }
+};
+
+const handleTopicUpdate = async () => {
+  console.log('话题已更新，正在刷新数据...');
+  await fetchTags();
+
+  // 如果当前有选中的话题，需要重新获取最新数据
+  if (selectedTagId.value) {
+    // 查找当前选中话题的最新数据
+    const updatedTag = tags.value.find(tag => tag.id === selectedTagId.value);
+    if (updatedTag) {
+      // 完全替换选中的话题数据，确保pdf_url等所有字段都是最新的
+      selectedTag.value = {...updatedTag};
+      console.log('已更新选中话题:', selectedTag.value);
+      // 刷新相关讨论
+      await getDiscussContent(currentPage.value);
+    } else {
+      // 如果之前选中的话题已被删除，选择第一个话题
+      if (tags.value.length > 0) {
+        await selectTag(tags.value[0]);
+      } else {
+        // 没有话题了，清空选择
+        selectedTag.value = null;
+        selectedTagId.value = null;
+        discussions.value = [];
+      }
+    }
+  }
+};
 
 // 主评论插入emoji
 const insertMainEmoji = (emoji: any) => {
@@ -434,19 +487,14 @@ const handleAuthorFilterClick = (filter: string) => {
 
 const getUserInfo = () => {
   try {
-    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-
-    if (userInfo && userInfo.username) {
-      return userInfo;
-    } else {
-      ElMessage.error('未获取到用户信息');
-      return null;
-    }
+    const info = JSON.parse(localStorage.getItem('userInfo') || '{}')
+    userInfo.value = info
+    return info
   } catch (error) {
-    ElMessage.error('获取用户信息失败');
-    return null;
+    console.error('获取用户信息失败:', error)
+    return null
   }
-};
+}
 
 // 用户提交讨论
 const submitDiscussion = async () => {
@@ -599,6 +647,16 @@ onUnmounted(() => {
   selectedTag.value = null;
   selectedTagId.value = null;
 });
+
+// 处理管理话题
+const handleManageTopics = () => {
+  topicManagerRef.value?.show()
+}
+
+// 在组件挂载时获取用户信息
+onMounted(() => {
+  getUserInfo()
+})
 </script>
 
 <style scoped>
@@ -606,8 +664,10 @@ onUnmounted(() => {
   display: flex;
 }
 
-.h-screen {
-  height: 100vh;
+.main-container {
+  min-height: 100vh;
+  height: auto;
+  display: flex;
 }
 
 .tags-container {
@@ -617,6 +677,8 @@ onUnmounted(() => {
   width: 250px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.1);
+  height: auto;
+  min-height: 100%;
 }
 
 .tags-container.collapsed {
@@ -690,6 +752,8 @@ onUnmounted(() => {
   display: table-column;
   flex: 1;
   color: black;
+  height: auto;
+  min-height: 100%;
 }
 
 .top-panel {
@@ -717,8 +781,10 @@ onUnmounted(() => {
   backdrop-filter: blur(10px);
 }
 
-.discuss-content .discussion-main {
-  width: 100%;
+.discussion-main {
+  margin-left: 0.5rem;
+  flex: 1; /* 添加这一行，让元素填充剩余空间 */
+  width: 100%; /* 确保宽度为100% */
 }
 
 .editor-container {

@@ -38,7 +38,7 @@
         </template>
         <span style="margin-left: 7px">{{ likeCount }}</span>
       </el-button>
-      <el-button class="reply-btn" @click="handleReply">
+      <el-button v-if="showReplyButton" class="reply-btn" @click="handleReply">
         <svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="20"
              height="20">
           <path
@@ -86,6 +86,10 @@ export default {
       required: true
     },
     isOwnComment: {
+      type: Boolean,
+      default: false
+    },
+    showReplyButton: {
       type: Boolean,
       default: false
     }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref} from "vue";
+import {ref, watch} from "vue";
 import {Search, ArrowDown} from "@element-plus/icons-vue";
 
 const timeFilterText = ref('所有时间');
@@ -8,6 +8,7 @@ const props = defineProps<{
   input: string
   buttonText: string
   buttonDisabled?: boolean
+  showManageButton?: boolean
 }>();
 
 const emit = defineEmits<{
@@ -16,7 +17,16 @@ const emit = defineEmits<{
   'create-discussion': []
   'time-filter-change': [filter: string]
   'author-filter-change': [filter: string]
+  'manage-topics': []
 }>();
+
+const inputValue = ref(props.input);
+const timeFilter = ref('all');
+const authorFilter = ref('all');
+
+watch(inputValue, (newValue) => {
+  emit('update:input', newValue);
+});
 
 const handleSearch = () => {
   emit('search');
@@ -60,6 +70,13 @@ const handleAuthorFilterClick = (filter: string) => {
           @click="handleCreateDiscussion"
       >
         {{ props.buttonText}}
+      </el-button>
+      <el-button
+        v-if="showManageButton"
+        type="primary"
+        @click="$emit('manage-topics')"
+      >
+        管理话题
       </el-button>
     </div>
     <div class="filter">
