@@ -163,6 +163,7 @@ const getExams = async () => {
     });
 
     if (res?.data?.code === 200 && res.data.data.length > 0) {
+      console.log(res.data.data);
       exams.value = res.data.data;
       // 默认选择最新的考试
       examId.value = exams.value[0].id;
