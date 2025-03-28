@@ -163,6 +163,7 @@ const getExams = async () => {
     });
 
     if (res?.data?.code === 200 && res.data.data.length > 0) {
+      console.log(res.data.data);
       exams.value = res.data.data;
       // 默认选择最新的考试
       examId.value = exams.value[0].id;
@@ -353,6 +354,10 @@ ${aiReport.value.analysis_report}
     </div>
 
     <h2 style="margin: 20px">总分：</h2>
+
+    <div class="export-container">
+      <button class="export-btn" @click="downloadCSV">导出成绩CSV</button>
+    </div>
     <div class="total">
       <div v-if="totalScores.length>0" class="total-fenbu">
         <FenbuchartComponent
@@ -360,9 +365,6 @@ ${aiReport.value.analysis_report}
             type="scatter-line"
             :seriesData="totalScores"
         />
-      </div>
-      <div class="export-container">
-        <button class="export-btn" @click="downloadCSV">导出成绩CSV</button>
       </div>
     </div>
 
