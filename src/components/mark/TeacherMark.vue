@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {getCurrentInstance, onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
+import MarkdownIt from 'markdown-it';
 import MathTextRenderer from "@/components/MathTextRenderer.vue";
 import ChoicechartComponent from "@/components/echarts/ChoicechartComponent.vue";
 import FenbuchartComponent from "@/components/echarts/FenbuchartComponet.vue";
@@ -9,6 +10,11 @@ import XiangxianComponent from "@/components/echarts/XiangxianComponent.vue";
 const route = useRoute();
 const instance = getCurrentInstance();
 const proxy = instance?.proxy;
+const md = new MarkdownIt({
+  html: true,        // 启用HTML标签
+  breaks: true,      // 将换行符转换为<br>
+  linkify: true      // 自动转换URL为链接
+});
 
 interface QuestionScore {
   question_id: number;
@@ -244,7 +250,8 @@ const generateAIReport = (student: Student) => {
     params: {
       user_id: student.id,
       exam_id: examId.value
-    }
+    },
+    timeout: 60000
   }).then((res: any) => {
     let response = res.data;
     if (response.code === 200) {
@@ -267,30 +274,10 @@ const closeReportModal = () => {
   selectedStudent.value = null;
 };
 
-// 导出AI报告为PDF
 // 渲染Markdown为HTML
 const renderMarkdown = (text: string) => {
   if (!text) return '';
-
-  // 简单的Markdown渲染
-  return text
-    // 处理标题
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
-    .replace(/^##### (.*$)/gm, '<h5>$1</h5>')
-
-    // 处理粗体和斜体
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-
-    // 处理列表
-    .replace(/^\s*\*(.*)/gm, '<li>$1</li>')
-    .replace(/^\s*\d+\.(.*)/gm, '<li>$1</li>')
-
-    // 处理换行
-    .replace(/\n/g, '<br />');
+  return md.render(text);
 };
 
 const exportReportAsPDF = () => {
